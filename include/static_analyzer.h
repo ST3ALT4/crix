@@ -1,39 +1,34 @@
 #ifndef STATIC_ANALYZER_H
 #define STATIC_ANALYZER_H
 
-#include <stddef.h>
+#include <string>
+#include <vector>
 
-typedef enum { FMT_TABLE, FMT_JSON } OutputFormat;
+enum class OutputFormat {
+  TABLE,
+  JSON
+};
 
-typedef enum {
-  SCOPE_GLOBAL,
-  SCOPE_FUNCTION,
-  SCOPE_BLOCK,
-  SCOPE_STRUCT,
-  SCOPE_ENUM
-} ScopeKind;
+enum class ScopeKind {
+  GLOBAL,
+  FUNCTION,
+  BLOCK,
+  STRUCT,
+  ENUM
+};
 
-typedef struct {
-  char name[256];
-  char type[256];
-  char scope_name[256];
+struct VarInfo {
+  std::string name;
+  std::string type;
+  std::string scope_name;
   ScopeKind scope_kind;
-  unsigned line;
-  unsigned col;
-  char value[256];
-} VarInfo;
+  unsigned int line;
+  unsigned int col;
+  std::string value;
+};
 
-typedef struct {
-  VarInfo *items;
-  size_t count;
-  size_t capacity;
-} VarList;
+using VarList = std::vector<VarInfo>;
 
-VarList *varlist_new(void);
-void varlist_push(VarList *vl, const VarInfo *v);
-void varlist_free(VarList *vl);
-
-VarList *static_analyze(const char *filepath, const char **extra_args,
-                        int extra_argc);
+VarList static_analyze(const std::string &filepath, const std::vector<std::string> &extra_args);
 
 #endif
