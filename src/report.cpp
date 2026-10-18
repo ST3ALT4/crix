@@ -1,10 +1,13 @@
+#include "report.h"
+#include "static_analyzer.h"
+#include "trace_model.h"
+
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <cstdio>
-
-#include "report.h"
-#include "static_analyzer.h"
+#include <unordered_set>
 
 static const char *scope_str(ScopeKind k) {
   switch (k) {
@@ -23,7 +26,6 @@ static const char *scope_str(ScopeKind k) {
 }
 
 void report_table(const VarList &vl, const std::string &filepath) {
-  /* Detect whether any entry has a non-empty value (runtime mode) */
   int has_values = 0;
   for (const auto &var : vl) {
     if (!var.value.empty()) {
@@ -33,8 +35,10 @@ void report_table(const VarList &vl, const std::string &filepath) {
   }
 
   const char *mode_label = has_values ? "Runtime" : "Static";
-  std::printf("\nVarScope — %s Analysis: %s\n", mode_label, filepath.c_str());
-  std::printf("Variables found: %zu\n\n", vl.size());
+  std::printf("\n======================================================================\n");
+  std::printf("  CRIX (CXX Resource Input Explorer) — %s Analysis\n", mode_label);
+  std::printf("  File: %s | Total Variables: %zu\n", filepath.c_str(), vl.size());
+  std::printf("======================================================================\n\n");
 
   /* column widths */
   int w_name = 12, w_type = 20, w_scope = 16, w_skind = 10, w_val = 14;
@@ -151,4 +155,86 @@ void report_json(const VarList &vl, const std::string &filepath) {
   }
 
   std::printf("  ]\n}\n");
+}
+
+void report_timeline(const ExecutionTrace &trace, bool interactive) {
+  std::cout << "\n======================================================================\n";
+  std::cout << "  CRIX Dynamic Execution Timeline (DSA Animation Data)\n";
+  std::cout << "  File: " << trace.source_file << " | Steps Recorded: " << trace.steps.size() << "\n";
+  std::cout << "======================================================================\n";
+
+  for (size_t idx = 0; idx < trace.steps.size(); ++idx) {
+    const auto &s = trace.steps[idx];
+
+    std::cout << "\n\033[1;36m[Step " << s.step_number << "]\033[0m "
+              << "\033[1m" << s.file << ":" << s.line << "\033[0m in "
+              << "\033[1;33m" << s.function_name << "()\033[0m";
+
+    if (s.call_stack.size() > 1) {
+      std::cout << "  \033[90m(stack:";
+      for (size_t f = 0; f < s.call_stack.size(); ++f) {
+        std::cout << (f == 0 ? " " : " -> ") << s.call_stack[f].name;
+      }
+      std::cout << ")\033[0m";
+    }
+    std::cout << "\n";
+
+    std::unordered_set<std::string> mod_set(s.delta.modified_vars.begin(), s.delta.modified_vars.end());
+    std::unordered_set<size_t> mutated_indices;
+    for (const auto &mut : s.delta.array_mutations) {
+      mutated_indices.insert(mut.index);
+    }
+
+    for (const auto &p : s.variables) {
+      bool is_mod = (mod_set.find(p.first) != mod_set.end());
+      std::cout << "  " << (is_mod ? "\033[1;32m* " : "  ") << p.first
+                << " \033[90m(" << p.second.type_name << ")\033[0m = ";
+
+      if (p.second.kind == ValueKind::ARRAY) {
+        std::cout << "[";
+        for (size_t el_i = 0; el_i < p.second.elements.size(); ++el_i) {
+          if (el_i > 0) std::cout << ", ";
+          if (mutated_indices.count(el_i)) {
+            std::cout << "\033[1;31m" << p.second.elements[el_i].to_string() << "\033[0m";
+          } else {
+            std::cout << p.second.elements[el_i].to_string();
+          }
+        }
+        std::cout << "]";
+      } else {
+        if (is_mod) {
+          std::cout << "\033[1;32m" << p.second.to_string() << "\033[0m";
+        } else {
+          std::cout << p.second.to_string();
+        }
+      }
+      if (is_mod) std::cout << "\033[0m";
+      std::cout << "\n";
+    }
+
+    if (!s.stdout_chunk.empty()) {
+      std::cout << "  \033[35m[stdout]\033[0m " << s.stdout_chunk;
+      if (s.stdout_chunk.back() != '\n') std::cout << "\n";
+    }
+
+    if (interactive && idx + 1 < trace.steps.size()) {
+      std::cout << "  \033[90m-- (Press Enter to continue, 'q' to end interactive)... \033[0m" << std::flush;
+      std::string input;
+      std::getline(std::cin, input);
+      if (input == "q" || input == "Q") {
+        interactive = false;
+      }
+    }
+  }
+  std::cout << "\n======================================================================\n\n";
+}
+
+bool export_trace_json(const ExecutionTrace &trace, const std::string &output_path) {
+  std::ofstream out(output_path);
+  if (!out.is_open()) {
+    std::cerr << "Failed to open " << output_path << " for writing trace JSON.\n";
+    return false;
+  }
+  out << trace.to_json(true);
+  return true;
 }

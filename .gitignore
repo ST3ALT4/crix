@@ -1,0 +1,4 @@
+*.o
+crix
+compile_commands.json
+.cache/
