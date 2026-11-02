@@ -6,7 +6,7 @@
 
 **CRIX (Code Runtime & Input eXplorer)** is a multi-language code execution visualizer. It takes a source file (C/C++, Rust, Python, etc.), extracts symbol and scope metadata via Language Server Protocol (LSP), traces execution step-by-step using a DAP debugger (e.g. `lldb-dap`), and produces structured data (variable snapshots, scope annotations, array mutation deltas, call stacks) that drive terminal timelines and animated Vulkan-based diagrams.
 
-**Current state:** The CLI backend is functional with merged trace/summary modes and language-agnostic LSP symbol analysis. The Vulkan visual frontend is implemented.
+**Current state:** The CLI backend is functional with merged trace/summary modes and language-agnostic LSP symbol analysis. The Vulkan visual frontend is implemented with a modern 3-pane layout (Executing Code, Stack Trace & Variables, Modular Animation Canvas), automated universal DSA topology discovery (1D sequences, linked lists, binary trees, 2D grids, recursion trees), Drop Sidebar data-structure switching, and a scrubbable media playback dock.
 
 ## Architecture & Data Flow
 
@@ -27,6 +27,8 @@ Input: Source file (e.g. tests/bubble_sort.c)
         At each step: queries stack frames, scopes, variables
         Annotates steps with LSP scope and symbol kind metadata
         Builds ExecutionTrace (vector of StepRecords)
+        │
+        ├─► Topology Detector (DSATopology discovery: Arrays, Lists, Trees, Grids, Call Trees)
         │
         └─► Output:
               - Timeline (colored step-by-step terminal display with delta markers)
@@ -64,9 +66,9 @@ Input: Source file (e.g. tests/bubble_sort.c)
 | `lsp_analyzer.cpp` | Minimal stdio JSON-RPC LSP client (forks server, initialize, documentSymbol, shutdown) |
 | `compiler_helper.cpp` | Detects ELF vs source, compiles to /tmp with -g -O0, RAII cleanup of temp binary |
 | `runtime_analyze.cpp` | Forks lldb-dap, DAP session over pipes, stepping loop, variable collection with child expansion |
-| `trace_model.cpp` | RuntimeValue::to_string(), compute_delta() (diff variables, array mutations), JSON serialization |
+| `trace_model.cpp` | `RuntimeValue::to_string()`, `compute_delta()` (diff variables, array mutations), JSON serialization |
 | `report.cpp` | Colored timeline with ANSI codes, summary table and JSON, interactive step-through mode |
-| `visualizer/anim_engine.cpp` | Modular rendering engine drawing solid visual cards, array cells, structs, and pointers |
+| `visualizer/anim_engine.cpp` | Modular rendering engine drawing solid visual cards, array cells, linked lists, trees, grids, and recursion stacks |
 | `visualizer/topology_detector.cpp` | Deterministic reflection of DSA topologies: Linked Lists, Binary Trees, 2D Grids, Sequences, and Call Trees |
 | `visualizer/trace_visual_adapter.cpp` | Translates CRIX runtime step records into generic visual scenes and discovers inspectable data structures |
 | `visualizer/vk_context.cpp` | Modern C++ Vulkan 1.2+ context, physical/logical device selection, swapchain |
@@ -74,6 +76,8 @@ Input: Source file (e.g. tests/bubble_sort.c)
 | `visualizer/scene_renderer.cpp` | Instanced SSBO data upload and quad bar rendering for array visualizer |
 | `visualizer/ui_overlay.cpp` | 3-Pane UI (Executing Code, Stack Trace, Animation Canvas) with Drop Sidebar and Media Dock |
 | `visualizer/visualizer_app.cpp` | Frame synchronization, presentation loop, animated step progression |
+| `visualizer/imgui/imgui_impl_sdl3.cpp` | ImGui platform backend for SDL3 |
+| `visualizer/imgui/imgui_impl_vulkan.cpp` | ImGui renderer backend for Vulkan |
 
 ### Shaders (`shaders/`)
 
@@ -92,6 +96,8 @@ Input: Source file (e.g. tests/bubble_sort.c)
 | `quicksort.c` | Partitioning, recursion, array mutations |
 | `binary_search.c` | Loop convergence, comparisons, index bounds |
 | `factorial.c` | Recursion stack and return values |
+| `linked_list.c` | Dynamic singly linked list node creation, pointer traversal, node sum accumulator |
+| `binary_tree.c` | Dynamic binary tree node creation, pointer dereferencing, left/right subtree traversal |
 
 ## Key Data Types
 
@@ -130,6 +136,35 @@ struct ExecutionTrace {
   vector<StepRecord> steps;
   string to_json(bool pretty) const;
 };
+
+// Universal DSA Topologies
+enum class DSATopology {
+  GENERIC_SCALAR,
+  SEQUENCE_1D,    // Array, vector, sliding window, two-pointer
+  GRID_2D,        // 2D Array, Matrix, DP Table
+  LINKED_LIST,    // Singly / Doubly linked list
+  BINARY_TREE,    // Binary tree, BST, Binary heap
+  GENERAL_GRAPH,  // Adjacency list / matrix
+  RECURSION_TREE  // Backtracking / Call-stack state tree
+};
+
+struct TopologyGraph {
+  DSATopology topology;
+  string description;
+  vector<TopologyNode> nodes;
+  vector<TopologyEdge> edges;
+  int grid_rows = 0, grid_cols = 0;
+  int64_t window_start = -1, window_end = -1, focus_index = -1;
+  int64_t compare_a = -1, compare_b = -1;
+};
+
+struct VisualScene {
+  string title, type_name, narration;
+  TopologyGraph graph;
+  vector<VisualNode> nodes;
+  vector<VisualPointer> pointers;
+  bool is_empty = true;
+};
 ```
 
 ## Build System
@@ -143,7 +178,7 @@ struct ExecutionTrace {
 | Mode | LSP Analysis | Compile | DAP Trace | Output |
 |------|:---:|:---:|:---:|--------|
 | `trace` | Optional (auto/explicit/--no-lsp) | ✅ | ✅ | Step-by-step timeline + optional `--summary` table/json + `--out` JSON export |
-| `visualize` | Optional (auto/explicit/--no-lsp) | ✅ | ✅ | Vulkan + Slang graphical window with modern web-style UI |
+| `visualize` | Optional (auto/explicit/--no-lsp) | ✅ | ✅ | Vulkan + Slang graphical window with modern 3-pane web-style UI |
 
 *(Note: legacy `static`, `runtime`, and `both` modes have been removed/merged into `trace`)*
 
@@ -154,6 +189,7 @@ struct ExecutionTrace {
 3. **[RESOLVED] char[] display:** Char arrays are formatted as quoted string summaries.
 4. **[RESOLVED] DAP banner in stdout:** Filtered OutputEvent to exclude adapter console messages.
 5. **[RESOLVED] .gitignore added:** Ignore `.o`, `crix`, `compile_commands.json`, `.cache/`.
+6. **[RESOLVED] Window backend migrated to SDL3:** GLFW was cleanly replaced by SDL3 and `imgui_impl_sdl3`.
 
 ## Active Roadmap & Future Plans
 
@@ -161,7 +197,10 @@ struct ExecutionTrace {
   - Solid, flat 100% opacity color palette (Tailwind Slate/Zinc/Indigo).
   - 3-Pane synchronized layout: Pane 1 (Code Executing), Pane 2 (Stack Trace), Pane 3 (Modular Animation Canvas).
   - Modular, decoupled `AnimationEngine` and `VisualScene` data model.
-  - Drop sidebar allowing the user to select and switch between observed data structures (arrays, structs, pointers, primitives).
+  - Drop sidebar allowing the user to select and switch between observed data structures (arrays, structs, pointers, primitives, call stack).
   - Media-player bottom dock with play/pause, step controls, speed selector, and scrubbable timeline.
-- **Algorithm-aware layouts:** Tree and graph node visualizers.
-- **Multi-file support.**
+- **[COMPLETED] Algorithm-Aware Layouts & DSA Topology Engine:**
+  - Automated reflection of Linked Lists, Binary Trees, 2D Grids / DP tables, 1D sequences (two-pointer / sliding window), and Recursion Trees.
+  - Adaptive node positioning, edge rendering, pointer cursor labels, and mutation highlight pulses.
+- **[NEXT] Interactive Canvas Controls:** Panning, zooming, and node drag-and-drop.
+- **[NEXT] Multi-file project support:** Tracing cross-file calls and multi-module navigation.

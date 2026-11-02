@@ -2,7 +2,7 @@
 
 A multi-language visual code-execution tool that helps you **see how your code runs**, step by step.
 
-Feed it a source file (C/C++, Rust, Python, etc.) and CRIX will extract symbol and scope metadata via Language Server Protocol (LSP), trace step-by-step through execution using a Debug Adapter Protocol (DAP) debugger (e.g. `lldb-dap`), and record variable values, array mutations, function calls, and control flow to produce structured data driving terminal timelines and animated Vulkan visualizations.
+Feed it a source file (C/C++, Rust, Python, etc.) and CRIX will extract symbol and scope metadata via Language Server Protocol (LSP), trace step-by-step through execution using a Debug Adapter Protocol (DAP) debugger (e.g. `lldb-dap`), and record variable values, array mutations, pointer transitions, function calls, and control flow to produce structured data driving terminal timelines and animated Vulkan visualizations.
 
 ---
 
@@ -11,7 +11,24 @@ Feed it a source file (C/C++, Rust, Python, etc.) and CRIX will extract symbol a
 | Mode | What you get |
 |------|-------------|
 | `trace` | Step-by-step terminal execution timeline with variable snapshots, mutation deltas, and optional summary table/JSON (`--summary`) |
-| `visualize` | Interactive Vulkan + Slang graphical window with modern web-style UI, Monaco-style synchronized code viewer, and animated array mutations |
+| `visualize` | Interactive Vulkan + Slang graphical window with modern web-style UI, Monaco-style synchronized code viewer, universal DSA topology layouts (Arrays, Linked Lists, Binary Trees, 2D Grids, Recursion Trees), Drop Sidebar, and scrubbable Media Dock |
+
+---
+
+## Visualizer Capabilities
+
+The Vulkan graphical frontend features a modern, solid-color 3-pane synchronized layout:
+
+- **Pane 1: Executing Code Viewer** — Synchronized source code view with line highlighting, active instruction pointer indicator, and scope tracking.
+- **Pane 2: Call Stack & Variables** — Live hierarchical call stack frames, variable inspection, memory types, and LSP-enriched symbol kind badges (`Local`, `Parameter`, `Function`, `Struct`).
+- **Pane 3: Universal DSA Canvas & Animation Engine** — Modular rendering engine with automated topology discovery:
+  - **1D Sequences & Arrays**: Solid-color cells, mutation pulses, sliding window & two-pointer markers, comparison highlights.
+  - **Linked Lists**: Dynamic node rendering with pointers (`head`, `curr`, `prev`) and animated edge relinking.
+  - **Binary Trees & BSTs**: Hierarchical node-link layouts with parent-child pointers (`left`, `right`).
+  - **2D Grids & DP Tables**: Row/col matrix layouts with active cell focus.
+  - **Recursion Trees**: Live visualization of recursive invocation call frames and backtracking stacks.
+- **Drop Sidebar**: Instantly switch and pin the visualization to any variable, pointer, data structure, or recursive call stack in scope.
+- **Media Player Dock**: Scrubbable timeline slider, play/pause controls, step forward/backward, reset, and configurable playback speed (0.25x to 4.0x).
 
 ---
 
@@ -43,6 +60,13 @@ Or run visually with Vulkan hardware acceleration:
 ./crix --mode=visualize tests/bubble_sort.c
 ```
 
+Or visualize dynamic node-link structures:
+```bash
+./crix --mode=visualize tests/linked_list.c
+./crix --mode=visualize tests/binary_tree.c
+./crix --mode=visualize tests/factorial.c
+```
+
 ---
 
 ## Architecture & Data Flow
@@ -64,6 +88,8 @@ Input: Source file (e.g. tests/bubble_sort.c)
         At each step: queries stack frames, scopes, variables
         Annotates steps with LSP scope and symbol kind metadata
         Builds ExecutionTrace (vector of StepRecords)
+        │
+        ├─► Topology Detector (DSATopology discovery: Arrays, Trees, Lists, Grids, Call Trees)
         │
         └─► Output:
               - Timeline (colored step-by-step terminal display with delta markers)
@@ -88,9 +114,9 @@ Input: Source file (e.g. tests/bubble_sort.c)
 | `jsoncpp` | JSON-RPC serialization for the LSP client |
 | `lldb-dap` | DAP server (runtime debugger) |
 | `vulkan-headers` / `vulkan-icd-loader` | Vulkan 1.2+ API |
-| `sdl3` | Window management and swapchain surface creation |
+| `sdl3` | Window management, input handling, and swapchain surface creation |
 | [slang](https://shader-slang.org/) (`slangc`) | Shading language compiler targeting SPIR-V |
-| `imgui` | UI overlay for code viewer, media dock, narration, and variable watch |
+| `imgui` | UI overlay with SDL3/Vulkan backends |
 
 ### Compile
 
@@ -161,6 +187,11 @@ When `--lsp-server` is not specified, CRIX automatically selects a server based 
 
 # Graphical Visualizer — interactive Vulkan + Slang UI with animated diagrams
 ./crix --mode=visualize tests/bubble_sort.c
+
+# Visualize linked lists, trees, and recursive calls
+./crix --mode=visualize tests/linked_list.c
+./crix --mode=visualize tests/binary_tree.c
+./crix --mode=visualize tests/factorial.c
 ```
 
 ---
@@ -176,6 +207,8 @@ When `--lsp-server` is not specified, CRIX automatically selects a server based 
 | `tests/quicksort.c` | Partitioning, recursion, array mutations |
 | `tests/binary_search.c` | Loop convergence, comparisons, index bounds |
 | `tests/factorial.c` | Recursion stack and return values |
+| `tests/linked_list.c` | Dynamic singly linked list node creation, pointer traversal, node sum accumulator |
+| `tests/binary_tree.c` | Dynamic binary tree node creation, pointer dereferencing, left/right subtree traversal |
 
 ---
 
@@ -188,7 +221,8 @@ When `--lsp-server` is not specified, CRIX automatically selects a server based 
 - [x] Vulkan + Slang graphics backend & shader pipeline
 - [x] 3-Pane Solid-Color UI (Code Executing, Stack Trace, Animation Canvas)
 - [x] Modular, data-structure agnostic Animation Engine with Drop Sidebar
-- [ ] Algorithm-aware graph and tree node layout graphs
+- [x] Algorithm-aware graph and tree node layouts (Linked Lists, Binary Trees, 2D Grids, Recursion Trees)
+- [ ] Interactive node drag-and-drop & canvas zooming / panning
 - [ ] Multi-file project support
 
 ---
