@@ -139,14 +139,34 @@ void SceneRenderer::createDescriptorPoolAndSets() {
   device.updateDescriptorSets(descriptorWrites, nullptr);
 }
 
-void SceneRenderer::updateDataFromStep(const StepRecord &step, float animationProgress) {
+void SceneRenderer::updateDataFromStep(const StepRecord &step, float animationProgress,
+                                        const std::string &targetDataStructure) {
   (void)animationProgress;
   m_instances.clear();
 
-  // Find any array variable in the current step (e.g. data in bubble sort)
-  for (const auto &var : step.variables) {
-    if (var.second.kind == ValueKind::ARRAY && !var.second.elements.empty()) {
-      size_t count = var.second.elements.size();
+  // Find target array or fall back to first array in current step
+  const std::pair<std::string, RuntimeValue> *chosenArray = nullptr;
+  if (!targetDataStructure.empty()) {
+    for (const auto &var : step.variables) {
+      if (var.first == targetDataStructure && var.second.kind == ValueKind::ARRAY &&
+          !var.second.elements.empty()) {
+        chosenArray = &var;
+        break;
+      }
+    }
+  }
+  if (!chosenArray) {
+    for (const auto &var : step.variables) {
+      if (var.second.kind == ValueKind::ARRAY && !var.second.elements.empty()) {
+        chosenArray = &var;
+        break;
+      }
+    }
+  }
+
+  if (chosenArray) {
+    const auto &var = *chosenArray;
+    size_t count = var.second.elements.size();
       float startX = -0.8f;
       float totalWidth = 1.6f;
       float spacing = totalWidth / static_cast<float>(count);
@@ -191,8 +211,6 @@ void SceneRenderer::updateDataFromStep(const StepRecord &step, float animationPr
 
         m_instances.push_back(inst);
       }
-      break;
-    }
   }
 
   // Upload instances to SSBO

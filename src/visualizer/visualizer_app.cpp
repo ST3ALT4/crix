@@ -21,7 +21,7 @@ VisualizerApp::~VisualizerApp() {
 }
 
 void VisualizerApp::initVulkan() {
-  m_context = std::make_unique<VulkanContext>(1280, 720, "CRIX - Code Runtime & Input eXplorer (Vulkan + Slang)");
+  m_context = std::make_unique<VulkanContext>(1280, 720, "CRIX - Code Runtime & Input eXplorer (SDL3 + Vulkan + Slang)");
 
   m_pipeline = std::make_unique<VulkanPipeline>(
       m_context->getDevice(),
@@ -50,7 +50,7 @@ void VisualizerApp::initVulkan() {
   );
 
   if (!m_trace.steps.empty()) {
-    m_renderer->updateDataFromStep(m_trace.steps[0], 0.0f);
+    m_renderer->updateDataFromStep(m_trace.steps[0], 0.0f, m_playbackState.selected_data_structure);
   }
 }
 
@@ -101,6 +101,19 @@ void VisualizerApp::createSyncObjects() {
   m_inFlightFence = device.createFence(fenceInfo);
 }
 
+void VisualizerApp::recreateSwapChain() {
+  auto device = m_context->getDevice();
+  device.waitIdle();
+
+  for (auto fb : m_swapChainFramebuffers) {
+    device.destroyFramebuffer(fb);
+  }
+  m_swapChainFramebuffers.clear();
+
+  m_context->recreateSwapChain();
+  createFramebuffers();
+}
+
 void VisualizerApp::drawFrame() {
   auto device = m_context->getDevice();
 
@@ -118,7 +131,7 @@ void VisualizerApp::drawFrame() {
     );
     imageIndex = result.value;
   } catch (const vk::OutOfDateKHRError &) {
-    m_context->recreateSwapChain();
+    recreateSwapChain();
     return;
   }
 
@@ -166,21 +179,17 @@ void VisualizerApp::drawFrame() {
   try {
     (void)m_context->getPresentQueue().presentKHR(presentInfo);
   } catch (const vk::OutOfDateKHRError &) {
-    m_context->recreateSwapChain();
+    recreateSwapChain();
   }
 }
 
 void VisualizerApp::run() {
   auto lastTime = std::chrono::high_resolution_clock::now();
 
-  std::cout << "[Vulkan Visualizer] Modern Web-Style UI active. Press ESC to exit, Space to toggle Play/Pause, Left/Right arrow to step.\n";
+  std::cout << "[SDL3 + Vulkan Visualizer] Modern Web-Style UI active. Press ESC to exit, Space to toggle Play/Pause, Left/Right arrow to step.\n";
 
   while (!m_context->shouldClose()) {
     m_context->pollEvents();
-
-    if (glfwGetKey(m_context->getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-      break;
-    }
 
     auto currentTime = std::chrono::high_resolution_clock::now();
     float dt = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count();
@@ -200,7 +209,7 @@ void VisualizerApp::run() {
       m_playbackState.animation_progress = 1.0f;
       m_playbackState.in_transition = false;
       if (!m_trace.steps.empty()) {
-        m_renderer->updateDataFromStep(m_trace.steps[0], 1.0f);
+        m_renderer->updateDataFromStep(m_trace.steps[0], 1.0f, m_playbackState.selected_data_structure);
       }
     } else if (m_playbackState.step_forward) {
       if (m_playbackState.current_step + 1 < m_trace.steps.size()) {
@@ -208,7 +217,7 @@ void VisualizerApp::run() {
         m_playbackState.transition_timer = 0.0f;
         m_playbackState.in_transition = true;
         m_playbackState.animation_progress = 0.0f;
-        m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 0.0f);
+        m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 0.0f, m_playbackState.selected_data_structure);
       }
       m_playbackState.step_forward = false;
     } else if (m_playbackState.step_backward) {
@@ -217,7 +226,7 @@ void VisualizerApp::run() {
         m_playbackState.transition_timer = 0.0f;
         m_playbackState.in_transition = true;
         m_playbackState.animation_progress = 0.0f;
-        m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 0.0f);
+        m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 0.0f, m_playbackState.selected_data_structure);
       }
       m_playbackState.step_backward = false;
     } else if (m_playbackState.scrubbed) {
@@ -225,7 +234,7 @@ void VisualizerApp::run() {
         m_playbackState.current_step = std::min(m_playbackState.scrub_target, m_trace.steps.size() - 1);
         m_playbackState.animation_progress = 1.0f;
         m_playbackState.in_transition = false;
-        m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 1.0f);
+        m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 1.0f, m_playbackState.selected_data_structure);
       }
       m_playbackState.scrubbed = false;
     } else if (!m_playbackState.is_paused) {
@@ -233,14 +242,14 @@ void VisualizerApp::run() {
       m_playbackState.animation_progress = m_playbackState.step_duration > 0.0f
           ? std::clamp(m_playbackState.timer / m_playbackState.step_duration, 0.0f, 1.0f)
           : 1.0f;
-      m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], m_playbackState.animation_progress);
+      m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], m_playbackState.animation_progress, m_playbackState.selected_data_structure);
 
       if (m_playbackState.timer >= m_playbackState.step_duration) {
         m_playbackState.timer = 0.0f;
         if (m_playbackState.current_step + 1 < m_trace.steps.size()) {
           m_playbackState.current_step++;
           m_playbackState.animation_progress = 0.0f;
-          m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 0.0f);
+          m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], 0.0f, m_playbackState.selected_data_structure);
         } else {
           m_playbackState.is_paused = true; // Auto-pause at end of trace
           m_playbackState.animation_progress = 1.0f;
@@ -250,7 +259,7 @@ void VisualizerApp::run() {
       m_playbackState.transition_timer += dt;
       m_playbackState.animation_progress = std::clamp(
           m_playbackState.transition_timer / m_playbackState.transition_duration, 0.0f, 1.0f);
-      m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], m_playbackState.animation_progress);
+      m_renderer->updateDataFromStep(m_trace.steps[m_playbackState.current_step], m_playbackState.animation_progress, m_playbackState.selected_data_structure);
 
       if (m_playbackState.transition_timer >= m_playbackState.transition_duration) {
         m_playbackState.in_transition = false;

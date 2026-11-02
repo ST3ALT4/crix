@@ -94,11 +94,9 @@ RuntimeResult runtime_analyze_dap(
     const std::string &binary_path,
     const std::string &source_file,
     const std::vector<std::string> &prog_args,
-    const VarList &static_vars,
     const RuntimeConfig &config) {
   RuntimeResult result;
   result.trace.source_file = source_file.empty() ? binary_path : source_file;
-  result.final_vars = static_vars;
 
   dap::initialize();
 
@@ -226,7 +224,6 @@ RuntimeResult runtime_analyze_dap(
   }
 
   std::string src_basename = get_basename(source_file);
-  std::unordered_map<std::string, std::string> latest_var_values;
 
   size_t step_count = 0;
   int consecutive_non_user_steps = 0;
@@ -328,7 +325,6 @@ RuntimeResult runtime_analyze_dap(
                 for (const auto &v : vr_res.response.variables) {
                   RuntimeValue rv = parse_variable(session.get(), v, 0, 2);
                   sfi.variables.push_back({v.name, rv});
-                  latest_var_values[v.name] = rv.to_string();
 
                   // Include in record.variables (top frame takes precedence)
                   if (frame_idx == 0 || seen_vars.find(v.name) == seen_vars.end()) {
@@ -377,14 +373,6 @@ RuntimeResult runtime_analyze_dap(
   session.reset();
   waitpid(pid, nullptr, 0);
   dap::terminate();
-
-  // Populate final variable table from latest observed values
-  for (auto &v : result.final_vars) {
-    auto it = latest_var_values.find(v.name);
-    if (it != latest_var_values.end()) {
-      v.value = it->second;
-    }
-  }
 
   result.success = true;
   return result;

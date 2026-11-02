@@ -2,8 +2,8 @@
 #define VK_CONTEXT_H
 
 #include <vulkan/vulkan.hpp>
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
 
 #include <string>
 #include <vector>
@@ -35,9 +35,9 @@ public:
   VulkanContext &operator=(const VulkanContext &) = delete;
 
   bool shouldClose() const;
-  void pollEvents();
+  bool pollEvents();  // Returns false when app should quit
 
-  GLFWwindow *getWindow() const { return m_window; }
+  SDL_Window *getWindow() const { return m_window; }
   vk::Instance getInstance() const { return m_instance; }
   vk::Device getDevice() const { return m_device; }
   vk::PhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
@@ -70,9 +70,8 @@ private:
   vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes);
   vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
 
-  GLFWwindow *m_window = nullptr;
-
-  vk::Instance m_instance;
+  SDL_Window *m_window = nullptr;
+  bool m_shouldClose = false;  vk::Instance m_instance;
   vk::SurfaceKHR m_surface;
   vk::PhysicalDevice m_physicalDevice;
   vk::Device m_device;

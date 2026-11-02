@@ -23,29 +23,42 @@ VulkanContext::~VulkanContext() {
   if (m_instance) m_instance.destroy();
 
   if (m_window) {
-    glfwDestroyWindow(m_window);
-    glfwTerminate();
+    SDL_DestroyWindow(m_window);
+    SDL_Quit();
   }
 }
 
 bool VulkanContext::shouldClose() const {
-  return glfwWindowShouldClose(m_window);
+  return m_shouldClose;
 }
 
-void VulkanContext::pollEvents() {
-  glfwPollEvents();
+bool VulkanContext::pollEvents() {
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    // Forward every event to ImGui first
+    extern void ImGui_ImplSDL3_ProcessEvent(const SDL_Event *);
+    ImGui_ImplSDL3_ProcessEvent(&event);
+
+    if (event.type == SDL_EVENT_QUIT) {
+      m_shouldClose = true;
+    }
+    if (event.type == SDL_EVENT_KEY_DOWN &&
+        event.key.scancode == SDL_SCANCODE_ESCAPE) {
+      m_shouldClose = true;
+    }
+  }
+  return !m_shouldClose;
 }
 
 void VulkanContext::initWindow(int width, int height, const std::string &title) {
-  if (!glfwInit()) {
-    throw std::runtime_error("Failed to initialize GLFW.");
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
+    throw std::runtime_error(std::string("Failed to initialize SDL3: ") + SDL_GetError());
   }
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-  m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+  m_window = SDL_CreateWindow(title.c_str(), width, height,
+                              SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
   if (!m_window) {
-    throw std::runtime_error("Failed to create GLFW window.");
+    throw std::runtime_error(std::string("Failed to create SDL3 window: ") + SDL_GetError());
   }
 }
 
@@ -68,9 +81,9 @@ void VulkanContext::createInstance() {
       VK_API_VERSION_1_2
   );
 
-  uint32_t glfwExtensionCount = 0;
-  const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-  std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+  uint32_t extCount = 0;
+  const char *const *sdlExts = SDL_Vulkan_GetInstanceExtensions(&extCount);
+  std::vector<const char *> extensions(sdlExts, sdlExts + extCount);
 
   vk::InstanceCreateInfo createInfo({}, &appInfo, 0, nullptr, static_cast<uint32_t>(extensions.size()), extensions.data());
   m_instance = vk::createInstance(createInfo);
@@ -78,8 +91,10 @@ void VulkanContext::createInstance() {
 
 void VulkanContext::createSurface() {
   VkSurfaceKHR rawSurface;
-  if (glfwCreateWindowSurface(static_cast<VkInstance>(m_instance), m_window, nullptr, &rawSurface) != VK_SUCCESS) {
-    throw std::runtime_error("Failed to create window surface via GLFW.");
+  if (!SDL_Vulkan_CreateSurface(m_window, static_cast<VkInstance>(m_instance),
+                                nullptr, &rawSurface)) {
+    throw std::runtime_error(std::string("Failed to create Vulkan surface via SDL3: ") +
+                             SDL_GetError());
   }
   m_surface = rawSurface;
 }
@@ -182,7 +197,7 @@ vk::Extent2D VulkanContext::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &c
     return capabilities.currentExtent;
   }
   int width, height;
-  glfwGetFramebufferSize(m_window, &width, &height);
+  SDL_GetWindowSizeInPixels(m_window, &width, &height);
 
   vk::Extent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
   actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
@@ -275,10 +290,10 @@ void VulkanContext::cleanupSwapChain() {
 
 void VulkanContext::recreateSwapChain() {
   int width = 0, height = 0;
-  glfwGetFramebufferSize(m_window, &width, &height);
+  SDL_GetWindowSizeInPixels(m_window, &width, &height);
   while (width == 0 || height == 0) {
-    glfwGetFramebufferSize(m_window, &width, &height);
-    glfwWaitEvents();
+    SDL_WaitEvent(nullptr);
+    SDL_GetWindowSizeInPixels(m_window, &width, &height);
   }
 
   m_device.waitIdle();

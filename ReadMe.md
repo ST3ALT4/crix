@@ -1,32 +1,27 @@
 # CRIX — Code Runtime & Input eXplorer
 
-A visual code-execution tool that helps you **see how your code runs**, step by step.
+A multi-language visual code-execution tool that helps you **see how your code runs**, step by step.
 
-Feed it a C source file and CRIX will trace through every line — showing variable values, array mutations, function calls, and control flow — producing structured data that can drive animated visualizations of algorithms and data structures.
-
-> **Vision:** Point CRIX at a sorting algorithm, and watch an animated diagram show you exactly how the array transforms at each step. The Vulkan-based visual frontend is planned for a future milestone; the current CLI backend produces the trace data that will power it.
+Feed it a source file (C/C++, Rust, Python, etc.) and CRIX will extract symbol and scope metadata via Language Server Protocol (LSP), trace step-by-step through execution using a Debug Adapter Protocol (DAP) debugger (e.g. `lldb-dap`), and record variable values, array mutations, function calls, and control flow to produce structured data driving terminal timelines and animated Vulkan visualizations.
 
 ---
 
-## What It Does Today
-
-CRIX has four modes:
+## Modes
 
 | Mode | What you get |
 |------|-------------|
-| `static` | Variable table from AST analysis (names, types, scopes, locations) |
-| `runtime` | Variable table enriched with final runtime values from the debugger |
-| `trace` | Step-by-step execution timeline with variable snapshots and array mutation deltas |
-| `both` | Trace timeline + summary variable table |
-| `visualize` | Interactive Vulkan + Slang graphical window animating execution & array mutations |
+| `trace` | Step-by-step terminal execution timeline with variable snapshots, mutation deltas, and optional summary table/JSON (`--summary`) |
+| `visualize` | Interactive Vulkan + Slang graphical window with modern web-style UI, Monaco-style synchronized code viewer, and animated array mutations |
 
-### Example: Tracing a Bubble Sort
+---
 
-```
-$ ./crix --mode=trace tests/bubble_sort.c --max-steps=10
+## Example: Tracing a Bubble Sort
+
+```bash
+./crix --mode=trace tests/bubble_sort.c --max-steps=10
 ```
 
-```
+```text
 [Step 1] bubble_sort.c:16 in main()
   * data (int[4]) = [0, 0, 0, 0]
   * n (int) = 0
@@ -43,9 +38,38 @@ $ ./crix --mode=trace tests/bubble_sort.c --max-steps=10
   * data (int[4]) = [1, 4, 3, 2]    ← swap complete
 ```
 
-Or run visually:
+Or run visually with Vulkan hardware acceleration:
 ```bash
 ./crix --mode=visualize tests/bubble_sort.c
+```
+
+---
+
+## Architecture & Data Flow
+
+```
+Input: Source file (e.g. tests/bubble_sort.c)
+  │
+  ├─► LSP Analyzer (JSON-RPC over stdio)
+  │     Auto-detects or uses --lsp-server (clangd, rust-analyzer, pyright...)
+  │     Initializes session, queries textDocument/documentSymbol
+  │     Extracts hierarchical symbol tree (variables, fields, constants, scopes)
+  │
+  ├─► Compiler Helper
+  │     Auto-compiles source to temp binary with: clang/clang++ -g -O0
+  │
+  └─► Runtime Analyzer (DAP protocol via cppdap library)
+        Forks lldb-dap as child process, communicates over pipes
+        Sets breakpoint at main(), then single-steps through user code
+        At each step: queries stack frames, scopes, variables
+        Annotates steps with LSP scope and symbol kind metadata
+        Builds ExecutionTrace (vector of StepRecords)
+        │
+        └─► Output:
+              - Timeline (colored step-by-step terminal display with delta markers)
+              - Trace JSON file (--out=path.json for frontend/tools)
+              - Summary table / JSON (--summary [--format=table|json])
+              - Vulkan Visualizer (--mode=visualize)
 ```
 
 ---
@@ -56,87 +80,115 @@ Or run visually:
 
 | Dependency | Purpose |
 |------------|---------|
-| `clang` / `clang++` | Compiler (C++17) |
-| `libclang-dev` | AST parsing for static analysis |
-| `llvm-dev` | llvm-config for build flags |
-| `libdw-dev` / `libelf-dev` | DWARF debug info (elfutils) |
-| [cppdap](https://github.com/nicknisi/cppdap) | Debug Adapter Protocol client library |
+| `clang` / `clang++` | Host compiler (C++17) & debug binary generation |
+| `clangd` / `rust-analyzer` | Language servers (LSP) for language-agnostic symbol analysis |
+| `llvm` | llvm-config for build flags |
+| `libdw` / `libelf` | DWARF debug info (elfutils) |
+| [cppdap](https://github.com/google/cppdap) | Debug Adapter Protocol client library |
+| `jsoncpp` | JSON-RPC serialization for the LSP client |
 | `lldb-dap` | DAP server (runtime debugger) |
-| `vulkan-headers` / `vulkan-icd-loader` | Vulkan API & modern C++ Vulkan-Hpp bindings |
-| `glfw3` | Window management and swapchain surface creation |
-| [slang](https://shader-slang.org/) (`slangc`) | Next-gen shading language compiler targeting SPIR-V |
-| `imgui` | Modern GUI overlay for code view, player timeline, and variable watch |
+| `vulkan-headers` / `vulkan-icd-loader` | Vulkan 1.2+ API |
+| `sdl3` | Window management and swapchain surface creation |
+| [slang](https://shader-slang.org/) (`slangc`) | Shading language compiler targeting SPIR-V |
+| `imgui` | UI overlay for code viewer, media dock, narration, and variable watch |
 
 ### Compile
 
 ```bash
-make        # builds ./crix
-make clean  # remove object files and binary
+make        # builds shaders and ./crix
+make clean  # removes object files, compiled shaders, and binary
 ```
 
 ---
 
 ## Usage
 
-```
-./crix --mode=<static|runtime|trace|both> [options] <file.c> [-- program-args...]
+```bash
+./crix --mode=<trace|visualize> [options] <file> [-- program-args...]
 ```
 
 ### Options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--mode=<mode>` | *(required)* | `static`, `runtime`, `trace`, or `both` |
-| `--format=<fmt>` | `table` | Output format: `table` or `json` |
-| `--out=<path>` | — | Export trace to JSON file |
+| `--mode=<mode>` | *(required)* | `trace` or `visualize` |
+| `--summary` | off | Print final-state variable summary table/json after trace |
+| `--format=<fmt>` | `table` | Summary output format: `table` or `json` (used with `--summary`) |
+| `--out=<path.json>` | — | Export full trace JSON to file |
 | `--max-steps=<N>` | `1000` | Max execution steps to record |
-| `--interactive` | off | Pause at each step (press Enter to advance) |
+| `--interactive` | off | Pause at each step (press Enter to advance, `q` to finish) |
 | `--adapter=<path>` | `lldb-dap` | Path to DAP adapter binary |
+| `--lsp-server=<cmd>` | auto | Command to spawn language server (e.g. `clangd`, `rust-analyzer`, `"pyright --stdio"`) |
+| `--no-lsp` | off | Disable LSP symbol analysis entirely (run pure DAP trace) |
 
-### Examples
+### Language Server Auto-Detection
+
+When `--lsp-server` is not specified, CRIX automatically selects a server based on the file extension:
+
+| File Extension | Default LSP Server |
+|---|---|
+| `.c`, `.cpp`, `.cc`, `.cxx`, `.h`, `.hpp` | `clangd` |
+| `.rs` | `rust-analyzer` |
+| `.py` | `pyright --stdio` |
+| `.go` | `gopls` |
+| Other | `clangd` (best-effort) |
+
+---
+
+## Examples
 
 ```bash
-# Static analysis — see all variables, types, and scopes
-./crix --mode=static tests/hello.c
+# Trace — step-by-step execution timeline with auto-detected LSP (clangd)
+./crix --mode=trace tests/bubble_sort.c
 
-# Runtime analysis — see final variable values after execution
-./crix --mode=runtime tests/hello.c
+# Trace with final variable summary table
+./crix --mode=trace --summary tests/hello.c
 
-# Trace — step-by-step execution timeline
-./crix --mode=trace tests/bubble_sort.c --out=trace.json
+# Trace with final variable summary as JSON
+./crix --mode=trace --summary --format=json tests/hello.c
 
-# Interactive trace — step through manually
-./crix --mode=both tests/nested.c --interactive
+# Export full trace JSON for visualizers and analysis
+./crix --mode=trace tests/nested.c --out=trace.json
+
+# Interactive trace — step through manually in the terminal
+./crix --mode=trace tests/nested.c --interactive
+
+# Explicit LSP server override
+./crix --mode=trace --lsp-server=clangd tests/nested.c
+
+# Skip LSP analysis entirely (pure runtime DAP tracing)
+./crix --mode=trace --no-lsp tests/bubble_sort.c
 
 # Graphical Visualizer — interactive Vulkan + Slang UI with animated diagrams
 ./crix --mode=visualize tests/bubble_sort.c
-
-# JSON output for programmatic use
-./crix --mode=static tests/hello.c --format=json
 ```
 
 ---
 
 ## Test Programs
 
-| File | Tests |
-|------|-------|
-| `tests/hello.c` | Globals, locals, function calls, if-blocks, char arrays |
-| `tests/bubble_sort.c` | Array mutations, nested loops, swap pattern |
-| `tests/nested.c` | Recursion, structs, enums, struct arrays |
-| `tests/pointer_swap.c` | Pointer parameters, dereferencing |
+| File | Exercises |
+|------|-----------|
+| `tests/hello.c` | Globals, locals, function calls, if-blocks, char arrays, printf |
+| `tests/bubble_sort.c` | Array mutations, nested loops, swap pattern — primary DSA test case |
+| `tests/nested.c` | Recursion, typedefs, structs, enums, struct arrays, make_point() |
+| `tests/pointer_swap.c` | Pointer parameters, dereferencing, swap-by-pointer |
+| `tests/quicksort.c` | Partitioning, recursion, array mutations |
+| `tests/binary_search.c` | Loop convergence, comparisons, index bounds |
+| `tests/factorial.c` | Recursion stack and return values |
 
 ---
 
 ## Roadmap
 
-- [x] Static AST analysis (libclang)
-- [x] Runtime variable inspection (DAP/lldb-dap)
-- [x] Step-by-step execution tracing with deltas
-- [x] JSON trace export for frontend consumption
+- [x] Language-agnostic LSP symbol and scope analyzer (`clangd`, `rust-analyzer`, etc.)
+- [x] DAP runtime execution stepping and variable collection (`lldb-dap`)
+- [x] Unified trace mode with array mutation deltas and final-state summaries
+- [x] JSON trace export (`--out=path.json`) with LSP scope annotations
 - [x] Vulkan + Slang graphics backend & shader pipeline
-- [ ] Modern Web-style UI & Interactive Visualizer (Monaco-style code view, step narration banner, annotated array cards, media-player timeline)
-- [ ] Algorithm-aware visualizations (trees, graphs, pointer links)
+- [x] 3-Pane Solid-Color UI (Code Executing, Stack Trace, Animation Canvas)
+- [x] Modular, data-structure agnostic Animation Engine with Drop Sidebar
+- [ ] Algorithm-aware graph and tree node layout graphs
 - [ ] Multi-file project support
 
 ---

@@ -195,7 +195,31 @@ std::string ExecutionTrace::to_json(bool pretty) const {
     }
     ss << "        ]\n";
     ss << "      },\n";
-    ss << "      \"stdout\": \"" << escape_json(s.stdout_chunk) << "\"\n";
+    ss << "      \"stdout\": \"" << escape_json(s.stdout_chunk) << "\"";
+
+    // LSP annotations (only emitted when present)
+    if (!s.var_scope_names.empty()) {
+      ss << ",\n      \"lsp_scopes\": {";
+      bool first = true;
+      for (const auto& kv : s.var_scope_names) {
+        if (!first) ss << ", ";
+        ss << "\"" << escape_json(kv.first) << "\": \""
+           << escape_json(kv.second) << "\"";
+        first = false;
+      }
+      ss << "}";
+    }
+    if (!s.var_symbol_kinds.empty()) {
+      ss << ",\n      \"lsp_kinds\": {";
+      bool first = true;
+      for (const auto& kv : s.var_symbol_kinds) {
+        if (!first) ss << ", ";
+        ss << "\"" << escape_json(kv.first) << "\": " << kv.second;
+        first = false;
+      }
+      ss << "}";
+    }
+    ss << "\n";
     ss << "    }" << (i + 1 < steps.size() ? "," : "") << "\n";
   }
 

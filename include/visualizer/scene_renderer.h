@@ -28,7 +28,8 @@ public:
   SceneRenderer(VulkanContext &context, VulkanPipeline &pipeline);
   ~SceneRenderer();
 
-  void updateDataFromStep(const StepRecord &step, float animationProgress);
+  void updateDataFromStep(const StepRecord &step, float animationProgress,
+                          const std::string &targetDataStructure = "");
   void render(uint32_t imageIndex, vk::CommandBuffer cmd);
 
 private:

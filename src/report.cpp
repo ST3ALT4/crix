@@ -1,170 +1,57 @@
 #include "report.h"
-#include "static_analyzer.h"
 #include "trace_model.h"
+#include "lsp_analyzer.h"
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
-#include <cstdio>
 #include <unordered_set>
+#include <cstdio>
 
-static const char *scope_str(ScopeKind k) {
-  switch (k) {
-  case ScopeKind::GLOBAL:
-    return "global";
-  case ScopeKind::FUNCTION:
-    return "function";
-  case ScopeKind::BLOCK:
-    return "block";
-  case ScopeKind::STRUCT:
-    return "struct";
-  case ScopeKind::ENUM:
-    return "enum";
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+static const char* lsp_kind_str(int kind) {
+  switch (kind) {
+  case static_cast<int>(LspSymbolKind::Variable):   return "variable";
+  case static_cast<int>(LspSymbolKind::Field):       return "field";
+  case static_cast<int>(LspSymbolKind::Constant):    return "constant";
+  case static_cast<int>(LspSymbolKind::EnumMember):  return "enum-member";
+  case static_cast<int>(LspSymbolKind::Property):    return "property";
+  default:                                            return "var";
   }
-  return "?";
 }
 
-void report_table(const VarList &vl, const std::string &filepath) {
-  int has_values = 0;
-  for (const auto &var : vl) {
-    if (!var.value.empty()) {
-      has_values = 1;
-      break;
-    }
-  }
-
-  const char *mode_label = has_values ? "Runtime" : "Static";
-  std::printf("\n======================================================================\n");
-  std::printf("  CRIX (CXX Resource Input Explorer) — %s Analysis\n", mode_label);
-  std::printf("  File: %s | Total Variables: %zu\n", filepath.c_str(), vl.size());
-  std::printf("======================================================================\n\n");
-
-  /* column widths */
-  int w_name = 12, w_type = 20, w_scope = 16, w_skind = 10, w_val = 14;
-
-  for (const auto &var : vl) {
-    int n;
-    if ((n = static_cast<int>(var.name.length())) > w_name)
-      w_name = n;
-    if ((n = static_cast<int>(var.type.length())) > w_type)
-      w_type = n;
-    if ((n = static_cast<int>(var.scope_name.length())) > w_scope)
-      w_scope = n;
-    if (has_values && (n = static_cast<int>(var.value.length())) > w_val)
-      w_val = n;
-  }
-
-  /* header */
-  if (has_values)
-    std::printf("%-*s  %-*s  %-*s  %-*s  %5s  %4s  %-*s\n", w_name, "NAME", w_type,
-           "TYPE", w_scope, "SCOPE", w_skind, "SCOPE-KIND", "LINE", "COL",
-           w_val, "VALUE");
-  else
-    std::printf("%-*s  %-*s  %-*s  %-*s  %5s  %4s\n", w_name, "NAME", w_type, "TYPE",
-           w_scope, "SCOPE", w_skind, "SCOPE-KIND", "LINE", "COL");
-
-  int sep_len =
-      w_name + w_type + w_scope + w_skind + 18 + (has_values ? w_val + 2 : 0);
-  for (int i = 0; i < sep_len; i++)
-    std::putchar('-');
-  std::putchar('\n');
-
-  for (const auto &v : vl) {
-    if (has_values)
-      std::printf("%-*s  %-*s  %-*s  %-*s  %5u  %4u  %-*s\n", w_name, v.name.c_str(),
-             w_type, v.type.c_str(), w_scope, v.scope_name.c_str(), w_skind,
-             scope_str(v.scope_kind), v.line, v.col, w_val, v.value.c_str());
-    else
-      std::printf("%-*s  %-*s  %-*s  %-*s  %5u  %4u\n", w_name, v.name.c_str(), w_type,
-             v.type.c_str(), w_scope, v.scope_name.c_str(), w_skind, scope_str(v.scope_kind),
-             v.line, v.col);
-  }
-  std::putchar('\n');
-}
-
-static void json_str(const std::string &s) {
+static void json_str(const std::string& s) {
   std::putchar('"');
   for (char c : s) {
     switch (c) {
-    case '"':
-      std::fputs("\\\"", stdout);
-      break;
-    case '\\':
-      std::fputs("\\\\", stdout);
-      break;
-    case '\n':
-      std::fputs("\\n", stdout);
-      break;
-    case '\r':
-      std::fputs("\\r", stdout);
-      break;
-    case '\t':
-      std::fputs("\\t", stdout);
-      break;
-    default:
-      std::putchar(c);
+    case '"':  std::fputs("\\\"", stdout); break;
+    case '\\': std::fputs("\\\\", stdout); break;
+    case '\n': std::fputs("\\n",  stdout); break;
+    case '\r': std::fputs("\\r",  stdout); break;
+    case '\t': std::fputs("\\t",  stdout); break;
+    default:   std::putchar(c);
     }
   }
   std::putchar('"');
 }
 
-void report_json(const VarList &vl, const std::string &filepath) {
-  int has_values = 0;
-  for (const auto &var : vl) {
-    if (!var.value.empty()) {
-      has_values = 1;
-      break;
-    }
-  }
+// ─────────────────────────────────────────────────────────────────────────────
+// Output A: Step-by-step timeline
+// ─────────────────────────────────────────────────────────────────────────────
 
-  std::printf("{\n");
-  std::printf("  \"file\": ");
-  json_str(filepath);
-  std::printf(",\n");
-  std::printf("  \"mode\": \"%s\",\n", has_values ? "runtime" : "static");
-  std::printf("  \"variable_count\": %zu,\n", vl.size());
-  std::printf("  \"variables\": [\n");
-
-  for (size_t i = 0; i < vl.size(); i++) {
-    const auto &v = vl[i];
-    std::printf("    {\n");
-    std::printf("      \"name\": ");
-    json_str(v.name);
-    std::printf(",\n");
-    std::printf("      \"type\": ");
-    json_str(v.type);
-    std::printf(",\n");
-    std::printf("      \"scope\": ");
-    json_str(v.scope_name);
-    std::printf(",\n");
-    std::printf("      \"scope_kind\": ");
-    json_str(scope_str(v.scope_kind));
-    std::printf(",\n");
-    std::printf("      \"line\": %u,\n", v.line);
-    std::printf("      \"col\": %u", v.col);
-    if (has_values) {
-      std::printf(",\n");
-      std::printf("      \"value\": ");
-      json_str(v.value);
-      std::printf("\n");
-    } else {
-      std::printf("\n");
-    }
-    std::printf("    }%s\n", i + 1 < vl.size() ? "," : "");
-  }
-
-  std::printf("  ]\n}\n");
-}
-
-void report_timeline(const ExecutionTrace &trace, bool interactive) {
+void report_timeline(const ExecutionTrace& trace, bool interactive) {
   std::cout << "\n======================================================================\n";
   std::cout << "  CRIX Dynamic Execution Timeline (DSA Animation Data)\n";
-  std::cout << "  File: " << trace.source_file << " | Steps Recorded: " << trace.steps.size() << "\n";
+  std::cout << "  File: " << trace.source_file
+            << " | Steps Recorded: " << trace.steps.size() << "\n";
   std::cout << "======================================================================\n";
 
   for (size_t idx = 0; idx < trace.steps.size(); ++idx) {
-    const auto &s = trace.steps[idx];
+    const auto& s = trace.steps[idx];
 
     std::cout << "\n\033[1;36m[Step " << s.step_number << "]\033[0m "
               << "\033[1m" << s.file << ":" << s.line << "\033[0m in "
@@ -179,15 +66,26 @@ void report_timeline(const ExecutionTrace &trace, bool interactive) {
     }
     std::cout << "\n";
 
-    std::unordered_set<std::string> mod_set(s.delta.modified_vars.begin(), s.delta.modified_vars.end());
+    std::unordered_set<std::string> mod_set(
+        s.delta.modified_vars.begin(), s.delta.modified_vars.end());
     std::unordered_set<size_t> mutated_indices;
-    for (const auto &mut : s.delta.array_mutations) {
+    for (const auto& mut : s.delta.array_mutations) {
       mutated_indices.insert(mut.index);
     }
 
-    for (const auto &p : s.variables) {
-      bool is_mod = (mod_set.find(p.first) != mod_set.end());
+    for (const auto& p : s.variables) {
+      bool is_mod = mod_set.count(p.first) > 0;
+
+      // Scope annotation from LSP (if available)
+      std::string scope_tag;
+      auto sc_it = s.var_scope_names.find(p.first);
+      if (sc_it != s.var_scope_names.end() && !sc_it->second.empty()
+          && sc_it->second != "<global>") {
+        scope_tag = " \033[90m[" + sc_it->second + "]\033[0m";
+      }
+
       std::cout << "  " << (is_mod ? "\033[1;32m* " : "  ") << p.first
+                << scope_tag
                 << " \033[90m(" << p.second.type_name << ")\033[0m = ";
 
       if (p.second.kind == ValueKind::ARRAY) {
@@ -218,18 +116,17 @@ void report_timeline(const ExecutionTrace &trace, bool interactive) {
     }
 
     if (interactive && idx + 1 < trace.steps.size()) {
-      std::cout << "  \033[90m-- (Press Enter to continue, 'q' to end interactive)... \033[0m" << std::flush;
+      std::cout << "  \033[90m-- (Press Enter to continue, 'q' to end)... \033[0m"
+                << std::flush;
       std::string input;
       std::getline(std::cin, input);
-      if (input == "q" || input == "Q") {
-        interactive = false;
-      }
+      if (input == "q" || input == "Q") interactive = false;
     }
   }
   std::cout << "\n======================================================================\n\n";
 }
 
-bool export_trace_json(const ExecutionTrace &trace, const std::string &output_path) {
+bool export_trace_json(const ExecutionTrace& trace, const std::string& output_path) {
   std::ofstream out(output_path);
   if (!out.is_open()) {
     std::cerr << "Failed to open " << output_path << " for writing trace JSON.\n";
@@ -237,4 +134,128 @@ bool export_trace_json(const ExecutionTrace &trace, const std::string &output_pa
   }
   out << trace.to_json(true);
   return true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Output B: Final-state variable summary
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Extract the final variable snapshot: walk steps in reverse to find the last
+// recorded value for each unique variable name.
+static std::vector<std::pair<std::string, RuntimeValue>>
+final_variable_snapshot(const ExecutionTrace& trace) {
+  std::vector<std::pair<std::string, RuntimeValue>> snap;
+  std::unordered_set<std::string> seen;
+
+  for (int i = static_cast<int>(trace.steps.size()) - 1; i >= 0; --i) {
+    for (const auto& p : trace.steps[i].variables) {
+      if (seen.insert(p.first).second) {
+        snap.push_back(p);
+      }
+    }
+  }
+  return snap;
+}
+
+void report_summary_table(const ExecutionTrace& trace, const std::string& filepath) {
+  if (trace.steps.empty()) {
+    std::printf("\n[crix] No execution steps recorded for %s\n", filepath.c_str());
+    return;
+  }
+
+  const auto  snap  = final_variable_snapshot(trace);
+  const auto& last  = trace.steps.back();
+  const bool  has_scope = !last.var_scope_names.empty();
+
+  // Column widths
+  int w_name = 12, w_type = 20, w_scope = 16, w_val = 16;
+  for (const auto& p : snap) {
+    int n;
+    if ((n = (int)p.first.size())              > w_name)  w_name  = n;
+    if ((n = (int)p.second.type_name.size())   > w_type)  w_type  = n;
+    if ((n = (int)p.second.to_string().size()) > w_val)   w_val   = n;
+    if (has_scope) {
+      auto it = last.var_scope_names.find(p.first);
+      if (it != last.var_scope_names.end() && (n = (int)it->second.size()) > w_scope)
+        w_scope = n;
+    }
+  }
+
+  std::printf("\n======================================================================\n");
+  std::printf("  CRIX — Runtime Variable Summary\n");
+  std::printf("  File: %s | Variables: %zu\n", filepath.c_str(), snap.size());
+  std::printf("======================================================================\n\n");
+
+  if (has_scope) {
+    std::printf("%-*s  %-*s  %-*s  %-*s\n",
+        w_name, "NAME", w_type, "TYPE", w_scope, "SCOPE", w_val, "VALUE");
+  } else {
+    std::printf("%-*s  %-*s  %-*s\n",
+        w_name, "NAME", w_type, "TYPE", w_val, "VALUE");
+  }
+
+  int sep = w_name + w_type + w_val + 4 + (has_scope ? w_scope + 2 : 0);
+  for (int i = 0; i < sep; ++i) std::putchar('-');
+  std::putchar('\n');
+
+  for (const auto& p : snap) {
+    std::string scope;
+    if (has_scope) {
+      auto it = last.var_scope_names.find(p.first);
+      if (it != last.var_scope_names.end()) scope = it->second;
+    }
+    if (has_scope) {
+      std::printf("%-*s  %-*s  %-*s  %-*s\n",
+          w_name, p.first.c_str(),
+          w_type, p.second.type_name.c_str(),
+          w_scope, scope.c_str(),
+          w_val,  p.second.to_string().c_str());
+    } else {
+      std::printf("%-*s  %-*s  %-*s\n",
+          w_name, p.first.c_str(),
+          w_type, p.second.type_name.c_str(),
+          w_val,  p.second.to_string().c_str());
+    }
+  }
+  std::putchar('\n');
+}
+
+void report_summary_json(const ExecutionTrace& trace, const std::string& filepath) {
+  if (trace.steps.empty()) {
+    std::printf("{\"file\":");
+    json_str(filepath);
+    std::printf(",\"variables\":[]}\n");
+    return;
+  }
+
+  const auto  snap = final_variable_snapshot(trace);
+  const auto& last = trace.steps.back();
+
+  std::printf("{\n  \"file\": ");
+  json_str(filepath);
+  std::printf(",\n  \"mode\": \"trace-summary\",\n");
+  std::printf("  \"total_steps\": %zu,\n", trace.steps.size());
+  std::printf("  \"variable_count\": %zu,\n", snap.size());
+  std::printf("  \"variables\": [\n");
+
+  for (size_t i = 0; i < snap.size(); ++i) {
+    const auto& [name, val] = snap[i];
+    std::printf("    {\n");
+    std::printf("      \"name\": "); json_str(name); std::printf(",\n");
+    std::printf("      \"type\": "); json_str(val.type_name); std::printf(",\n");
+    std::printf("      \"value\": "); json_str(val.to_string());
+
+    // LSP annotations if present
+    auto sc_it = last.var_scope_names.find(name);
+    if (sc_it != last.var_scope_names.end()) {
+      std::printf(",\n      \"scope\": "); json_str(sc_it->second);
+    }
+    auto ki_it = last.var_symbol_kinds.find(name);
+    if (ki_it != last.var_symbol_kinds.end()) {
+      std::printf(",\n      \"lsp_kind\": \"%s\"", lsp_kind_str(ki_it->second));
+    }
+
+    std::printf("\n    }%s\n", i + 1 < snap.size() ? "," : "");
+  }
+  std::printf("  ]\n}\n");
 }

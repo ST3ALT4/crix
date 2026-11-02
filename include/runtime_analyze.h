@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "static_analyzer.h"
 #include "trace_model.h"
 
 struct RuntimeConfig {
@@ -16,17 +15,15 @@ struct RuntimeConfig {
 
 struct RuntimeResult {
   ExecutionTrace trace;
-  VarList final_vars;
   bool success = false;
   std::string error_message;
 };
 
 RuntimeResult runtime_analyze_dap(
-    const std::string &binary_path,
-    const std::string &source_file,
-    const std::vector<std::string> &prog_args,
-    const VarList &static_vars,
-    const RuntimeConfig &config = RuntimeConfig{}
+    const std::string& binary_path,
+    const std::string& source_file,
+    const std::vector<std::string>& prog_args,
+    const RuntimeConfig& config = RuntimeConfig{}
 );
 
 #endif // RUNTIME_ANALYZE_H

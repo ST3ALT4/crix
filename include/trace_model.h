@@ -55,6 +55,10 @@ struct StepRecord {
   std::vector<std::pair<std::string, RuntimeValue>> variables;
   StepDelta delta;
   std::string stdout_chunk;
+
+  // LSP-sourced annotations (populated by annotate_trace() if LSP ran)
+  std::unordered_map<std::string, std::string> var_scope_names;  // varname → scope
+  std::unordered_map<std::string, int>         var_symbol_kinds; // varname → LspSymbolKind int
 };
 
 struct ExecutionTrace {

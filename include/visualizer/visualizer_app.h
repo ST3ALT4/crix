@@ -23,6 +23,7 @@ private:
   void createFramebuffers();
   void createCommandBuffers();
   void createSyncObjects();
+  void recreateSwapChain();
   void drawFrame();
 
   ExecutionTrace m_trace;
