@@ -19,10 +19,8 @@ struct CompiledTarget {
 
   CompiledTarget(CompiledTarget &&o) noexcept
       : binary_path(std::move(o.binary_path)),
-        source_path(std::move(o.source_path)),
-        is_temporary(o.is_temporary),
-        success(o.success),
-        error_message(std::move(o.error_message)) {
+        source_path(std::move(o.source_path)), is_temporary(o.is_temporary),
+        success(o.success), error_message(std::move(o.error_message)) {
     o.is_temporary = false; // prevent donor from cleaning up
   }
 
@@ -43,6 +41,8 @@ struct CompiledTarget {
   ~CompiledTarget() { cleanup(); }
 };
 
-CompiledTarget prepare_target(const std::string &input_path, const std::vector<std::string> &extra_compile_flags = {});
+CompiledTarget
+prepare_target(const std::string &input_path,
+               const std::vector<std::string> &extra_compile_flags = {});
 
 #endif // COMPILER_HELPER_H
