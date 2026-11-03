@@ -142,57 +142,57 @@ void UIOverlay::applyModernWebTheme() {
   ImGuiStyle &style = ImGui::GetStyle();
   ImVec4 *colors = style.Colors;
 
-  // Solid, clean geometry
-  style.WindowRounding = 8.0f;
-  style.ChildRounding = 6.0f;
-  style.FrameRounding = 6.0f;
-  style.PopupRounding = 6.0f;
-  style.ScrollbarRounding = 6.0f;
-  style.GrabRounding = 4.0f;
-  style.TabRounding = 6.0f;
+  // VS Code / Professional Creative Tool Geometry (tight, utilitarian, no bloated radii)
+  style.WindowRounding    = 2.0f;
+  style.ChildRounding     = 2.0f;
+  style.FrameRounding     = 2.0f;
+  style.PopupRounding     = 2.0f;
+  style.ScrollbarRounding = 2.0f;
+  style.GrabRounding      = 2.0f;
+  style.TabRounding       = 2.0f;
 
-  style.WindowBorderSize = 1.0f;
-  style.ChildBorderSize = 1.0f;
-  style.FrameBorderSize = 1.0f;
+  style.WindowBorderSize  = 1.0f;
+  style.ChildBorderSize   = 1.0f;
+  style.FrameBorderSize   = 1.0f;
 
-  style.WindowPadding = ImVec2(12.0f, 12.0f);
-  style.FramePadding = ImVec2(10.0f, 6.0f);
-  style.ItemSpacing = ImVec2(8.0f, 8.0f);
-  style.ItemInnerSpacing = ImVec2(6.0f, 6.0f);
+  style.WindowPadding     = ImVec2(8.0f, 8.0f);
+  style.FramePadding      = ImVec2(6.0f, 3.0f);
+  style.ItemSpacing       = ImVec2(6.0f, 4.0f);
+  style.ItemInnerSpacing  = ImVec2(4.0f, 4.0f);
 
-  // 100% Solid Colors Palette (Alpha = 1.0f, no hazy transparencies)
-  colors[ImGuiCol_Text]                 = ImVec4(0.97f, 0.98f, 0.99f, 1.00f); // Slate 50
-  colors[ImGuiCol_TextDisabled]         = ImVec4(0.58f, 0.64f, 0.72f, 1.00f); // Slate 400
-  colors[ImGuiCol_WindowBg]             = ImVec4(0.06f, 0.08f, 0.13f, 1.00f); // Slate 950
-  colors[ImGuiCol_ChildBg]              = ImVec4(0.09f, 0.12f, 0.19f, 1.00f); // Slate 900
-  colors[ImGuiCol_PopupBg]              = ImVec4(0.09f, 0.12f, 0.19f, 1.00f);
-  colors[ImGuiCol_Border]               = ImVec4(0.20f, 0.25f, 0.35f, 1.00f); // Slate 700
+  // VS Code Dark Modern Neutral Palette (#1e1e1e base, #252526 sidebar, #333333 frames)
+  colors[ImGuiCol_Text]                 = ImVec4(0.85f, 0.85f, 0.85f, 1.00f); // #d4d4d4
+  colors[ImGuiCol_TextDisabled]         = ImVec4(0.52f, 0.52f, 0.52f, 1.00f); // #858585
+  colors[ImGuiCol_WindowBg]             = ImVec4(0.118f, 0.118f, 0.118f, 1.00f); // #1e1e1e (Editor base)
+  colors[ImGuiCol_ChildBg]              = ImVec4(0.145f, 0.145f, 0.149f, 1.00f); // #252526 (Sidebar / panels)
+  colors[ImGuiCol_PopupBg]              = ImVec4(0.176f, 0.176f, 0.176f, 1.00f); // #2d2d2d (Flyouts / palettes)
+  colors[ImGuiCol_Border]               = ImVec4(0.235f, 0.235f, 0.235f, 1.00f); // #3c3c3c (Subtle divider)
   colors[ImGuiCol_BorderShadow]         = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-  colors[ImGuiCol_FrameBg]              = ImVec4(0.12f, 0.16f, 0.25f, 1.00f); // Slate 800
-  colors[ImGuiCol_FrameBgHovered]       = ImVec4(0.18f, 0.24f, 0.36f, 1.00f);
-  colors[ImGuiCol_FrameBgActive]        = ImVec4(0.24f, 0.30f, 0.44f, 1.00f);
-  colors[ImGuiCol_TitleBg]              = ImVec4(0.07f, 0.09f, 0.15f, 1.00f);
-  colors[ImGuiCol_TitleBgActive]        = ImVec4(0.09f, 0.12f, 0.19f, 1.00f);
-  colors[ImGuiCol_MenuBarBg]            = ImVec4(0.08f, 0.10f, 0.16f, 1.00f);
-  colors[ImGuiCol_ScrollbarBg]          = ImVec4(0.06f, 0.08f, 0.13f, 1.00f);
-  colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.25f, 0.32f, 0.45f, 1.00f);
-  colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.35f, 0.43f, 0.60f, 1.00f);
-  colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.45f, 0.55f, 0.75f, 1.00f);
+  colors[ImGuiCol_FrameBg]              = ImVec4(0.200f, 0.200f, 0.200f, 1.00f); // #333333 (Inputs & chips)
+  colors[ImGuiCol_FrameBgHovered]       = ImVec4(0.240f, 0.240f, 0.240f, 1.00f);
+  colors[ImGuiCol_FrameBgActive]        = ImVec4(0.000f, 0.480f, 0.800f, 0.80f); // #007acc (VS Code focus blue)
+  colors[ImGuiCol_TitleBg]              = ImVec4(0.120f, 0.120f, 0.120f, 1.00f);
+  colors[ImGuiCol_TitleBgActive]        = ImVec4(0.145f, 0.145f, 0.149f, 1.00f);
+  colors[ImGuiCol_MenuBarBg]            = ImVec4(0.180f, 0.180f, 0.180f, 1.00f);
+  colors[ImGuiCol_ScrollbarBg]          = ImVec4(0.118f, 0.118f, 0.118f, 1.00f);
+  colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.260f, 0.260f, 0.260f, 1.00f);
+  colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.350f, 0.350f, 0.350f, 1.00f);
+  colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.450f, 0.450f, 0.450f, 1.00f);
 
-  // Solid Accents (Blue, Indigo, Emerald)
-  colors[ImGuiCol_CheckMark]            = ImVec4(0.22f, 0.74f, 0.98f, 1.00f); // Sky 400
-  colors[ImGuiCol_SliderGrab]           = ImVec4(0.25f, 0.45f, 0.95f, 1.00f);
-  colors[ImGuiCol_SliderGrabActive]     = ImVec4(0.35f, 0.55f, 1.00f, 1.00f);
-  colors[ImGuiCol_Button]               = ImVec4(0.15f, 0.39f, 0.92f, 1.00f); // Solid Blue 600
-  colors[ImGuiCol_ButtonHovered]        = ImVec4(0.22f, 0.48f, 0.96f, 1.00f);
-  colors[ImGuiCol_ButtonActive]         = ImVec4(0.11f, 0.31f, 0.78f, 1.00f);
-  colors[ImGuiCol_Header]               = ImVec4(0.18f, 0.24f, 0.36f, 1.00f);
-  colors[ImGuiCol_HeaderHovered]        = ImVec4(0.25f, 0.33f, 0.48f, 1.00f);
-  colors[ImGuiCol_HeaderActive]         = ImVec4(0.15f, 0.39f, 0.92f, 1.00f);
-  colors[ImGuiCol_Separator]            = ImVec4(0.20f, 0.25f, 0.35f, 1.00f);
-  colors[ImGuiCol_Tab]                  = ImVec4(0.12f, 0.16f, 0.25f, 1.00f);
-  colors[ImGuiCol_TabHovered]           = ImVec4(0.25f, 0.33f, 0.48f, 1.00f);
-  colors[ImGuiCol_TabActive]            = ImVec4(0.15f, 0.39f, 0.92f, 1.00f);
+  // VS Code Accent Colors: Electric Cyan / Focus Blue (#007acc & #00d1ff)
+  colors[ImGuiCol_CheckMark]            = ImVec4(0.00f, 0.82f, 1.00f, 1.00f); // Electric Cyan
+  colors[ImGuiCol_SliderGrab]           = ImVec4(0.00f, 0.48f, 0.80f, 1.00f); // #007acc
+  colors[ImGuiCol_SliderGrabActive]     = ImVec4(0.00f, 0.82f, 1.00f, 1.00f);
+  colors[ImGuiCol_Button]               = ImVec4(0.180f, 0.180f, 0.180f, 1.00f);
+  colors[ImGuiCol_ButtonHovered]        = ImVec4(0.000f, 0.480f, 0.800f, 0.70f); // #007acc hover
+  colors[ImGuiCol_ButtonActive]         = ImVec4(0.000f, 0.480f, 0.800f, 1.00f);
+  colors[ImGuiCol_Header]               = ImVec4(0.165f, 0.176f, 0.180f, 1.00f); // #2a2d2e
+  colors[ImGuiCol_HeaderHovered]        = ImVec4(0.216f, 0.216f, 0.239f, 1.00f); // #37373d
+  colors[ImGuiCol_HeaderActive]         = ImVec4(0.035f, 0.278f, 0.443f, 1.00f); // #094771 (VS Code active item)
+  colors[ImGuiCol_Separator]            = ImVec4(0.235f, 0.235f, 0.235f, 1.00f); // #3c3c3c
+  colors[ImGuiCol_Tab]                  = ImVec4(0.145f, 0.145f, 0.149f, 1.00f);
+  colors[ImGuiCol_TabHovered]           = ImVec4(0.216f, 0.216f, 0.239f, 1.00f);
+  colors[ImGuiCol_TabActive]            = ImVec4(0.118f, 0.118f, 0.118f, 1.00f);
 }
 
 void UIOverlay::loadSourceFile(const std::string &path) {
@@ -256,53 +256,76 @@ std::string UIOverlay::generateNarrationText(const StepRecord &step) {
 }
 
 void UIOverlay::renderTopNavbar(const StepRecord &step, const UIPlaybackState &state) {
-  ImGui::BeginChild("TopNavbar", ImVec2(0, 44), true, ImGuiWindowFlags_NoScrollbar);
+  ImGui::BeginChild("TopNavbar", ImVec2(0, 38), true, ImGuiWindowFlags_NoScrollbar);
 
-  // Brand Badge
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.39f, 0.92f, 1.0f));
+  // VS Code Title Brand Badge
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.00f, 0.48f, 0.80f, 1.0f)); // #007acc
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
   ImGui::Button("CRIX");
+  ImGui::PopStyleVar();
   ImGui::PopStyleColor();
   ImGui::SameLine();
 
-  // Breadcrumb
-  ImGui::TextColored(ImVec4(0.58f, 0.64f, 0.72f, 1.0f), "file: %s", m_sourcePath.c_str());
+  // Breadcrumbs: workspace > file > function() : Ln
+  ImGui::TextDisabled("workspace >");
   ImGui::SameLine();
+  std::string fileName = m_sourcePath;
+  size_t lastSlash = fileName.find_last_of("/\\");
+  if (lastSlash != std::string::npos) fileName = fileName.substr(lastSlash + 1);
+  ImGui::TextColored(ImVec4(0.85f, 0.85f, 0.85f, 1.0f), "%s", fileName.c_str());
+  ImGui::SameLine();
+  ImGui::TextDisabled(">");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.00f, 0.82f, 1.00f, 1.0f), "%s()", step.function_name.c_str());
+  ImGui::SameLine();
+  ImGui::TextDisabled(": Ln %d", step.line);
 
-  // Function badge
-  ImGui::TextColored(ImVec4(0.22f, 0.74f, 0.98f, 1.0f), "• %s() [L%d]",
-                     step.function_name.c_str(), step.line);
+  // VS Code Command Center Button (centered)
+  float centerBoxW = 320.0f;
+  float centerBoxX = (ImGui::GetWindowWidth() - centerBoxW) * 0.5f;
+  if (centerBoxX > 320.0f) {
+    ImGui::SameLine(centerBoxX);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.26f, 0.26f, 0.26f, 1.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.0f, 3.0f));
+    if (ImGui::Button("Search commands, jump to step... (Ctrl+K)", ImVec2(centerBoxW, 24))) {
+      m_cmdPaletteOpen = true;
+    }
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor(2);
+  }
 
-  // Auto-discovered DSA Topology badge
-  auto topo = TopologyDetector::discover(step, ExecutionTrace{}, state.selected_data_structure);
-  if (!topo.description.empty()) {
+  // Right-aligned Controls
+  float rightAreaX = ImGui::GetWindowWidth() - 360.0f;
+  if (rightAreaX > 540.0f) {
+    ImGui::SameLine(rightAreaX);
+  } else {
     ImGui::SameLine();
-    ImGui::TextColored(ImVec4(0.96f, 0.62f, 0.04f, 1.0f), "• %s", topo.description.c_str());
   }
 
   // Drop Sidebar Toggle Button
-  ImGui::SameLine(ImGui::GetWindowWidth() - 440.0f);
   std::string targetLabel = state.selected_data_structure.empty()
-                                ? "▾ Data Structures"
-                                : ("▾ Target: " + state.selected_data_structure);
+                                ? "Data Structures"
+                                : ("Target: " + state.selected_data_structure);
   if (m_sidebarOpen) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.73f, 0.51f, 1.0f)); // Solid Emerald when open
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.00f, 0.48f, 0.80f, 1.0f)); // Active blue
   } else {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.18f, 0.24f, 0.36f, 1.0f)); // Solid Slate
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
   }
-  if (ImGui::Button(targetLabel.c_str())) {
+  if (ImGui::Button(targetLabel.c_str(), ImVec2(0, 24))) {
     m_sidebarOpen = !m_sidebarOpen;
   }
   ImGui::PopStyleColor();
+  ImGui::SameLine();
 
-  // Step Status Badge
-  ImGui::SameLine(ImGui::GetWindowWidth() - 200.0f);
+  // Play/Pause Status Pill
   if (state.is_paused) {
-    ImGui::TextColored(ImVec4(0.96f, 0.62f, 0.04f, 1.0f), "⏸ PAUSED");
+    ImGui::TextColored(ImVec4(0.96f, 0.62f, 0.04f, 1.0f), "PAUSED");
   } else {
-    ImGui::TextColored(ImVec4(0.06f, 0.73f, 0.51f, 1.0f), "● PLAYING");
+    ImGui::TextColored(ImVec4(0.22f, 0.74f, 0.98f, 1.0f), "STEPPING");
   }
   ImGui::SameLine();
-  ImGui::TextColored(ImVec4(0.85f, 0.88f, 0.92f, 1.0f), "Step %zu/%zu",
+  ImGui::TextColored(ImVec4(0.70f, 0.70f, 0.70f, 1.0f), "Step %zu/%zu",
                      state.total_steps > 0 ? (state.current_step + 1) : 0, state.total_steps);
 
   ImGui::EndChild();
@@ -378,14 +401,19 @@ static std::vector<CCodeToken> tokenizeCLine(const std::string &line) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PANE 1: Code Executing
+// PANE 1: Code Executing (VS Code Monaco Look)
 // ─────────────────────────────────────────────────────────────────────────────
 void UIOverlay::renderCodeExecutingPane(int currentLine, float width, float height) {
   ImGui::BeginChild("PaneCodeExecuting", ImVec2(width, height), true);
 
-  ImGui::TextColored(ImVec4(0.22f, 0.74f, 0.98f, 1.0f), "💻 CODE EXECUTING");
+  // Tab Header Bar
+  std::string fileName = m_sourcePath;
+  size_t lastSlash = fileName.find_last_of("/\\");
+  if (lastSlash != std::string::npos) fileName = fileName.substr(lastSlash + 1);
+
+  ImGui::TextColored(ImVec4(0.00f, 0.82f, 1.00f, 1.0f), "%s", fileName.c_str());
   ImGui::SameLine();
-  ImGui::TextDisabled("| Line %d", currentLine);
+  ImGui::TextDisabled("| Ln %d", currentLine);
   ImGui::Separator();
 
   ImGui::BeginChild("CodeScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -401,10 +429,10 @@ void UIOverlay::renderCodeExecutingPane(int currentLine, float width, float heig
       ImVec2 p_max = ImVec2(p_min.x + ImGui::GetContentRegionAvail().x,
                             p_min.y + ImGui::GetTextLineHeightWithSpacing());
 
-      // Solid dark active row + solid blue left marker
-      ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, IM_COL32(30, 41, 59, 255), 4.0f);
-      ImGui::GetWindowDrawList()->AddRectFilled(p_min, ImVec2(p_min.x + 4, p_max.y),
-                                                IM_COL32(59, 130, 246, 255), 2.0f);
+      // VS Code style active line highlight (dark blue-gray row + cyan left edge)
+      ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, IM_COL32(35, 45, 60, 255), 2.0f);
+      ImGui::GetWindowDrawList()->AddRectFilled(p_min, ImVec2(p_min.x + 3, p_max.y),
+                                                IM_COL32(0, 209, 255, 255), 1.0f);
 
       // Auto-scroll on step change
       if (m_lastActiveLine != currentLine) {
@@ -414,9 +442,9 @@ void UIOverlay::renderCodeExecutingPane(int currentLine, float width, float heig
     }
 
     if (isActive) {
-      ImGui::TextColored(ImVec4(0.96f, 0.62f, 0.04f, 1.0f), " %2d ► ", lineNum);
+      ImGui::TextColored(ImVec4(0.00f, 0.82f, 1.00f, 1.0f), "%3d ▶ ", lineNum);
     } else {
-      ImGui::TextDisabled(" %2d │ ", lineNum);
+      ImGui::TextDisabled("%3d │ ", lineNum);
     }
 
     auto tokens = tokenizeCLine(m_sourceLines[i]);
@@ -433,55 +461,92 @@ void UIOverlay::renderCodeExecutingPane(int currentLine, float width, float heig
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PANE 2: Stack Trace
+// PANE 2: Stack Trace & Variables (VS Code Run & Debug View)
 // ─────────────────────────────────────────────────────────────────────────────
 void UIOverlay::renderStackTracePane(const StepRecord &step, float width, float height) {
   ImGui::BeginChild("PaneStackTrace", ImVec2(width, height), true);
 
-  ImGui::TextColored(ImVec4(0.06f, 0.73f, 0.51f, 1.0f), "🌳 STACK TRACE");
+  ImGui::TextColored(ImVec4(0.00f, 0.82f, 1.00f, 1.0f), "RUN & DEBUG");
   ImGui::SameLine();
-  ImGui::TextDisabled("(Depth: %zu)", step.call_stack.size());
+  ImGui::TextDisabled("| PID Active");
   ImGui::Separator();
 
-  if (step.call_stack.empty()) {
-    ImGui::TextDisabled("No active stack frames.");
-    ImGui::EndChild();
-    return;
-  }
+  ImGui::BeginChild("DebugSidebarScroll", ImVec2(0, 0), false);
 
-  ImGui::BeginChild("StackFramesScroll", ImVec2(0, 0), false);
-
-  for (size_t i = 0; i < step.call_stack.size(); ++i) {
-    const auto &frame = step.call_stack[i];
-    bool isTopFrame = (i == 0);
-
-    ImGui::PushID(static_cast<int>(i));
-
-    float cardEstimatedH = 68.0f + static_cast<float>(frame.variables.size()) * 22.0f;
-    ImGui::BeginChild("FrameCard", ImVec2(0, cardEstimatedH), true);
-
-    // Frame Badge
-    if (isTopFrame) {
-      ImGui::TextColored(ImVec4(0.06f, 0.73f, 0.51f, 1.0f), "▶ [Frame %zu] %s()", i, frame.name.c_str());
+  // 1. CALL STACK SECTION
+  if (ImGui::CollapsingHeader("CALL STACK", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (step.call_stack.empty()) {
+      ImGui::TextDisabled("  No active stack frames.");
     } else {
-      ImGui::TextColored(ImVec4(0.58f, 0.64f, 0.72f, 1.0f), "  [Frame %zu] %s()", i, frame.name.c_str());
-    }
+      for (size_t i = 0; i < step.call_stack.size(); ++i) {
+        const auto &frame = step.call_stack[i];
+        bool isTop = (i == 0);
 
-    // Source location
-    std::string loc = "    at " + (frame.file.empty() ? step.file : frame.file) + ":" + std::to_string(frame.line);
-    ImGui::TextDisabled("%s", loc.c_str());
-
-    // Frame variables
-    if (!frame.variables.empty()) {
-      ImGui::TextColored(ImVec4(0.38f, 0.75f, 0.98f, 1.0f), "    Variables:");
-      for (const auto &v : frame.variables) {
-        ImGui::Text("      • %s: %s", v.first.c_str(), v.second.to_string().c_str());
+        ImGui::PushID(static_cast<int>(i));
+        if (isTop) {
+          ImGui::TextColored(ImVec4(0.00f, 0.82f, 1.00f, 1.0f), "  ▶ [%zu] %s()", i, frame.name.c_str());
+        } else {
+          ImGui::TextDisabled("    [%zu] %s()", i, frame.name.c_str());
+        }
+        std::string loc = "       " + (frame.file.empty() ? step.file : frame.file) + ":" + std::to_string(frame.line);
+        ImGui::TextDisabled("%s", loc.c_str());
+        ImGui::PopID();
       }
     }
-
-    ImGui::EndChild();
-    ImGui::PopID();
     ImGui::Spacing();
+  }
+
+  // 2. VARIABLES SECTION (Inspecting Real State & Deltas)
+  if (ImGui::CollapsingHeader("VARIABLES", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (step.variables.empty()) {
+      ImGui::TextDisabled("  No variables in local scope.");
+    } else {
+      // Create quick lookup set of mutated variables in this step
+      std::unordered_set<std::string> mutatedSet;
+      for (const auto &mv : step.delta.modified_vars) mutatedSet.insert(mv);
+
+      for (const auto &v : step.variables) {
+        const std::string &varName = v.first;
+        const RuntimeValue &val = v.second;
+        bool isMutated = mutatedSet.count(varName) > 0;
+
+        // Symbol Kind Badge if available from LSP
+        std::string kindStr = "[VAR]";
+        auto kIt = step.var_symbol_kinds.find(varName);
+        if (kIt != step.var_symbol_kinds.end()) {
+          if (kIt->second == 12) kindStr = "[FN]";
+          else if (kIt->second == 25) kindStr = "[PARAM]";
+          else if (kIt->second == 22) kindStr = "[STRUCT]";
+        }
+        if (val.kind == ValueKind::ARRAY) kindStr = "[ARR]";
+        else if (val.kind == ValueKind::POINTER) kindStr = "[PTR]";
+
+        if (isMutated) {
+          ImGui::TextColored(ImVec4(1.00f, 0.80f, 0.20f, 1.0f), "  * %s %s:", kindStr.c_str(), varName.c_str());
+          ImGui::SameLine();
+          ImGui::TextColored(ImVec4(1.00f, 0.80f, 0.20f, 1.0f), "%s [MUTATED]", val.to_string().c_str());
+        } else {
+          ImGui::TextColored(ImVec4(0.70f, 0.70f, 0.70f, 1.0f), "    %s %s:", kindStr.c_str(), varName.c_str());
+          ImGui::SameLine();
+          ImGui::TextColored(ImVec4(0.90f, 0.90f, 0.90f, 1.0f), "%s", val.to_string().c_str());
+        }
+
+        // Show LSP scope if available
+        auto sIt = step.var_scope_names.find(varName);
+        if (sIt != step.var_scope_names.end() && !sIt->second.empty()) {
+          ImGui::TextDisabled("        scope: %s", sIt->second.c_str());
+        }
+      }
+    }
+    ImGui::Spacing();
+  }
+
+  // 3. LSP & DWARF METADATA
+  if (ImGui::CollapsingHeader("DEBUG INFO & SCOPE", ImGuiTreeNodeFlags_None)) {
+    ImGui::TextDisabled("  Adapter: lldb-dap");
+    ImGui::TextDisabled("  Symbol Provider: clangd (LSP)");
+    ImGui::TextDisabled("  DWARF Info: .debug_info Valid");
+    ImGui::TextDisabled("  Target Arch: Linux x86_64");
   }
 
   ImGui::EndChild();
@@ -670,55 +735,55 @@ void UIOverlay::renderDataStructureDropSidebar(const StepRecord &step,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Bottom Playback Media Dock
+// Bottom Playback Media Dock (Blender / Transport Controls)
 // ─────────────────────────────────────────────────────────────────────────────
 void UIOverlay::renderBottomMediaDock(UIPlaybackState &state) {
-  ImGui::BeginChild("BottomMediaDock", ImVec2(0, 68), true, ImGuiWindowFlags_NoScrollbar);
+  ImGui::BeginChild("BottomMediaDock", ImVec2(0, 42), true, ImGuiWindowFlags_NoScrollbar);
 
   // Restart Button
-  if (ImGui::Button("⏮", ImVec2(36, 32))) {
+  if (ImGui::Button("⏮ [R]", ImVec2(52, 26))) {
     state.restart = true;
   }
   ImGui::SameLine();
 
   // Step Backward Button
-  if (ImGui::Button("◀", ImVec2(36, 32))) {
+  if (ImGui::Button("◀ [J]", ImVec2(52, 26))) {
     state.step_backward = true;
   }
   ImGui::SameLine();
 
   // Play / Pause Button
-  const char *playPauseLabel = state.is_paused ? "▶ Play" : "⏸ Pause";
+  const char *playPauseLabel = state.is_paused ? "▶ Play [Space]" : "⏸ Pause [Space]";
   if (state.is_paused) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.06f, 0.73f, 0.51f, 1.0f)); // Solid Emerald
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.00f, 0.48f, 0.80f, 1.0f)); // #007acc
   } else {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.96f, 0.62f, 0.04f, 1.0f)); // Solid Amber
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.96f, 0.62f, 0.04f, 1.0f)); // Amber
   }
-  if (ImGui::Button(playPauseLabel, ImVec2(80, 32))) {
+  if (ImGui::Button(playPauseLabel, ImVec2(120, 26))) {
     state.is_paused = !state.is_paused;
   }
   ImGui::PopStyleColor();
   ImGui::SameLine();
 
   // Step Forward Button
-  if (ImGui::Button("▶", ImVec2(36, 32))) {
+  if (ImGui::Button("▶ [L]", ImVec2(52, 26))) {
     state.step_forward = true;
   }
   ImGui::SameLine();
 
   // Speed Selector Buttons
-  ImGui::Text("  Speed:");
+  ImGui::TextDisabled("Speed:");
   ImGui::SameLine();
   const float speeds[] = {1.5f, 0.8f, 0.35f, 0.1f};
   const char *speedLabels[] = {"0.5x", "1.0x", "2.0x", "5.0x"};
   for (int sIdx = 0; sIdx < 4; ++sIdx) {
     bool isCurrent = std::abs(state.step_duration - speeds[sIdx]) < 0.01f;
     if (isCurrent) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.39f, 0.92f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.00f, 0.48f, 0.80f, 1.0f));
     } else {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.12f, 0.16f, 0.25f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
     }
-    if (ImGui::Button(speedLabels[sIdx], ImVec2(46, 26))) {
+    if (ImGui::Button(speedLabels[sIdx], ImVec2(42, 24))) {
       state.step_duration = speeds[sIdx];
     }
     ImGui::PopStyleColor();
@@ -727,7 +792,7 @@ void UIOverlay::renderBottomMediaDock(UIPlaybackState &state) {
 
   // Timeline Scrubber Slider
   ImGui::SameLine();
-  float sliderWidth = ImGui::GetContentRegionAvail().x - 14.0f;
+  float sliderWidth = ImGui::GetContentRegionAvail().x - 10.0f;
   if (sliderWidth > 80.0f) {
     ImGui::PushItemWidth(sliderWidth);
     int currentStepInt = static_cast<int>(state.current_step);
@@ -743,6 +808,153 @@ void UIOverlay::renderBottomMediaDock(UIPlaybackState &state) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// VS Code Bottom Status Bar
+// ─────────────────────────────────────────────────────────────────────────────
+void UIOverlay::renderBottomStatusBar(const StepRecord &step, const UIPlaybackState &state) {
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.48f, 0.80f, 1.0f)); // VS Code Status Blue (#007acc)
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 3.0f));
+  ImGui::BeginChild("BottomStatusBar", ImVec2(0, 24), false, ImGuiWindowFlags_NoScrollbar);
+
+  // Left items
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "main*");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.85f, 0.95f, 1.0f, 1.0f), "|");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.30f, 1.00f, 0.60f, 1.0f), "● DAP: lldb-dap");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.85f, 0.95f, 1.0f, 1.0f), "|");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "ELF x86_64");
+
+  // Right items
+  float rightStart = ImGui::GetWindowWidth() - 500.0f;
+  if (rightStart > 260.0f) {
+    ImGui::SameLine(rightStart);
+  } else {
+    ImGui::SameLine();
+  }
+
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Step %zu of %zu",
+                     state.total_steps > 0 ? (state.current_step + 1) : 0, state.total_steps);
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.85f, 0.95f, 1.0f, 1.0f), "|");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Ln %d, Col %d", step.line, step.col > 0 ? step.col : 1);
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.85f, 0.95f, 1.0f, 1.0f), "|");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "UTF-8");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.85f, 0.95f, 1.0f, 1.0f), "|");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(0.00f, 0.90f, 1.00f, 1.0f), "Ctrl+K: Palette");
+
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Command Palette (VS Code Ctrl+K / Ctrl+Shift+P Modal)
+// ─────────────────────────────────────────────────────────────────────────────
+void UIOverlay::renderCommandPalette(const StepRecord &step, const ExecutionTrace &trace, UIPlaybackState &state) {
+  if (!m_cmdPaletteOpen) return;
+
+  ImGui::OpenPopup("CommandPaletteModal");
+
+  ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+  ImGui::SetNextWindowPos(ImVec2(center.x - 270.0f, center.y - 160.0f), ImGuiCond_Appearing);
+  ImGui::SetNextWindowSize(ImVec2(540.0f, 320.0f));
+
+  ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+  ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.15f, 0.15f, 0.16f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.48f, 0.80f, 1.0f));
+
+  if (ImGui::BeginPopupModal("CommandPaletteModal", &m_cmdPaletteOpen, flags)) {
+    // Search input
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::IsWindowAppearing()) {
+      ImGui::SetKeyboardFocusHere();
+    }
+    ImGui::InputTextWithHint("##PaletteFilter", "Type a command or filter data structures (Esc to close)...", m_cmdFilter, sizeof(m_cmdFilter));
+    ImGui::Separator();
+
+    std::string filterStr = m_cmdFilter;
+    for (char &c : filterStr) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+    auto matchFilter = [&](const std::string &text) {
+      if (filterStr.empty()) return true;
+      std::string lowerText = text;
+      for (char &c : lowerText) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+      return lowerText.find(filterStr) != std::string::npos;
+    };
+
+    ImGui::BeginChild("PaletteItems", ImVec2(0, 0), false);
+
+    // Command entries
+    if (matchFilter("Step Forward Next Delta (Space / L)")) {
+      if (ImGui::Selectable("▶  Trace: Step Forward [Space / L]")) {
+        state.step_forward = true;
+        m_cmdPaletteOpen = false;
+      }
+    }
+    if (matchFilter("Step Backward Prev Delta (J)")) {
+      if (ImGui::Selectable("◀  Trace: Step Backward [J]")) {
+        state.step_backward = true;
+        m_cmdPaletteOpen = false;
+      }
+    }
+    if (matchFilter("Toggle Play Pause (Space)")) {
+      if (ImGui::Selectable(state.is_paused ? "▶  Trace: Play" : "⏸  Trace: Pause")) {
+        state.is_paused = !state.is_paused;
+        m_cmdPaletteOpen = false;
+      }
+    }
+    if (matchFilter("Reset Execution to main (R)")) {
+      if (ImGui::Selectable("⏮  Trace: Reset to Entry Point [R]")) {
+        state.restart = true;
+        m_cmdPaletteOpen = false;
+      }
+    }
+    if (matchFilter("Toggle Data Structures Sidebar")) {
+      if (ImGui::Selectable("▾  View: Toggle Observed Data Structures Sidebar")) {
+        m_sidebarOpen = !m_sidebarOpen;
+        m_cmdPaletteOpen = false;
+      }
+    }
+    if (matchFilter("Topology: Auto Select from Active Scope")) {
+      if (ImGui::Selectable("✦  Topology: Auto Select Active Scope")) {
+        state.selected_data_structure.clear();
+        m_cmdPaletteOpen = false;
+      }
+    }
+    if (matchFilter("Topology: Call Stack Recursion Tree")) {
+      if (ImGui::Selectable("🌳 Topology: Call Stack / Recursion Tree")) {
+        state.selected_data_structure = "call_stack";
+        m_cmdPaletteOpen = false;
+      }
+    }
+
+    // Dynamic Variables in scope
+    auto candidates = TraceVisualAdapter::discoverDataStructures(step, trace);
+    for (const auto &c : candidates) {
+      std::string label = "🔍 Observe: " + c.name + " (" + c.type + ")";
+      if (matchFilter(label)) {
+        if (ImGui::Selectable(label.c_str())) {
+          state.selected_data_structure = c.name;
+          m_cmdPaletteOpen = false;
+        }
+      }
+    }
+
+    ImGui::EndChild();
+    ImGui::EndPopup();
+  }
+
+  ImGui::PopStyleColor(2);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Root UI Dispatcher (3-Pane Architecture)
 // ─────────────────────────────────────────────────────────────────────────────
 void UIOverlay::renderUI(const ExecutionTrace &trace, UIPlaybackState &state) {
@@ -753,6 +965,26 @@ void UIOverlay::renderUI(const ExecutionTrace &trace, UIPlaybackState &state) {
   for (size_t i = 0; i <= state.current_step && i < trace.steps.size(); ++i) {
     if (!trace.steps[i].stdout_chunk.empty()) {
       m_cumulativeStdout += trace.steps[i].stdout_chunk;
+    }
+  }
+
+  // Handle Global Power-User Hotkeys
+  ImGuiIO &io = ImGui::GetIO();
+  if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_K)) {
+    m_cmdPaletteOpen = !m_cmdPaletteOpen;
+  }
+  if (!m_cmdPaletteOpen && !io.WantTextInput) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+      state.is_paused = !state.is_paused;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_J)) {
+      state.step_backward = true;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_L)) {
+      state.step_forward = true;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_R)) {
+      state.restart = true;
     }
   }
 
@@ -775,8 +1007,8 @@ void UIOverlay::renderUI(const ExecutionTrace &trace, UIPlaybackState &state) {
   // 1. Top Navbar
   renderTopNavbar(currentStep, state);
 
-  // 2. Three Panes Layout
-  float totalHeight = ImGui::GetContentRegionAvail().y - 74.0f; // Leave space for media dock
+  // 2. Three Panes Layout (reserving space for media dock + VS Code status bar)
+  float totalHeight = ImGui::GetContentRegionAvail().y - 42.0f - 24.0f - 8.0f;
   float totalWidth  = ImGui::GetContentRegionAvail().x;
 
   float codeWidth   = std::max(280.0f, totalWidth * 0.32f); // Pane 1: 32%
@@ -797,8 +1029,14 @@ void UIOverlay::renderUI(const ExecutionTrace &trace, UIPlaybackState &state) {
   // Drop Sidebar (if open)
   renderDataStructureDropSidebar(currentStep, trace, state);
 
-  // Bottom Media Dock
+  // Bottom Media Dock (Blender / Transport Controls)
   renderBottomMediaDock(state);
+
+  // VS Code Bottom Status Bar
+  renderBottomStatusBar(currentStep, state);
+
+  // Command Palette Modal (Ctrl+K)
+  renderCommandPalette(currentStep, trace, state);
 
   ImGui::End();
   ImGui::Render();

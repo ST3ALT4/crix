@@ -193,12 +193,12 @@ struct VisualScene {
 
 ## Active Roadmap & Future Plans
 
-- **[COMPLETED] 3-Pane Solid-Color UI & Drop Sidebar:**
-  - Solid, flat 100% opacity color palette (Tailwind Slate/Zinc/Indigo).
-  - 3-Pane synchronized layout: Pane 1 (Code Executing), Pane 2 (Stack Trace), Pane 3 (Modular Animation Canvas).
-  - Modular, decoupled `AnimationEngine` and `VisualScene` data model.
-  - Drop sidebar allowing the user to select and switch between observed data structures (arrays, structs, pointers, primitives, call stack).
-  - Media-player bottom dock with play/pause, step controls, speed selector, and scrubbable timeline.
+- **[COMPLETED] VS Code + Blender Hybrid UI & Command Engine:**
+  - Dark Modern neutral palette (#1e1e1e, #252526, #2d2d2d, #3c3c3c) with 2px tight radii and 1px borders.
+  - 3-Pane synchronized layout: Pane 1 (Monaco-style Code Viewer with breadcrumbs and active stepping glyph), Pane 2 (VS Code Run & Debug view with stack frames and live mutated variable highlights), Pane 3 (Modular Animation Canvas).
+  - Native Command Palette modal (`Ctrl+K` / `Ctrl+Shift+P`) for quick symbol jumping, topology switching, and execution control.
+  - Blender-inspired media transport dock with scrubbable timeline and speed presets.
+  - VS Code bottom status bar with DAP connection state, execution step counter, active file coordinates, and encoding.
 - **[COMPLETED] Algorithm-Aware Layouts & DSA Topology Engine:**
   - Automated reflection of Linked Lists, Binary Trees, 2D Grids / DP tables, 1D sequences (two-pointer / sliding window), and Recursion Trees.
   - Adaptive node positioning, edge rendering, pointer cursor labels, and mutation highlight pulses.

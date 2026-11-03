@@ -64,6 +64,12 @@ private:
   // Bottom playback media player dock
   void renderBottomMediaDock(UIPlaybackState &state);
 
+  // VS Code style bottom status bar
+  void renderBottomStatusBar(const StepRecord &step, const UIPlaybackState &state);
+
+  // Command Palette (Ctrl+K / Ctrl+Shift+P)
+  void renderCommandPalette(const StepRecord &step, const ExecutionTrace &trace, UIPlaybackState &state);
+
   std::string generateNarrationText(const StepRecord &step);
 
   SDL_Window *m_window;
@@ -81,6 +87,10 @@ private:
 
   // Drop sidebar toggle state
   bool m_sidebarOpen = false;
+
+  // Command Palette state
+  bool m_cmdPaletteOpen = false;
+  char m_cmdFilter[128] = "";
 };
 
 #endif // UI_OVERLAY_H

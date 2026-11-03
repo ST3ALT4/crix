@@ -15,23 +15,6 @@ Feed it a source file (C/C++, Rust, Python, etc.) and CRIX will extract symbol a
 
 ---
 
-## Visualizer Capabilities
-
-The Vulkan graphical frontend features a modern, solid-color 3-pane synchronized layout:
-
-- **Pane 1: Executing Code Viewer** — Synchronized source code view with line highlighting, active instruction pointer indicator, and scope tracking.
-- **Pane 2: Call Stack & Variables** — Live hierarchical call stack frames, variable inspection, memory types, and LSP-enriched symbol kind badges (`Local`, `Parameter`, `Function`, `Struct`).
-- **Pane 3: Universal DSA Canvas & Animation Engine** — Modular rendering engine with automated topology discovery:
-  - **1D Sequences & Arrays**: Solid-color cells, mutation pulses, sliding window & two-pointer markers, comparison highlights.
-  - **Linked Lists**: Dynamic node rendering with pointers (`head`, `curr`, `prev`) and animated edge relinking.
-  - **Binary Trees & BSTs**: Hierarchical node-link layouts with parent-child pointers (`left`, `right`).
-  - **2D Grids & DP Tables**: Row/col matrix layouts with active cell focus.
-  - **Recursion Trees**: Live visualization of recursive invocation call frames and backtracking stacks.
-- **Drop Sidebar**: Instantly switch and pin the visualization to any variable, pointer, data structure, or recursive call stack in scope.
-- **Media Player Dock**: Scrubbable timeline slider, play/pause controls, step forward/backward, reset, and configurable playback speed (0.25x to 4.0x).
-
----
-
 ## Example: Tracing a Bubble Sort
 
 ```bash
